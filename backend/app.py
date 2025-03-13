@@ -7,7 +7,11 @@ import time
 import random  # Just for simulating air quality data in this demo
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Update CORS configuration to allow specific origins
+CORS(app, resources={r"/*": {"origins": [
+    "https://bluebreathe-frontend.onrender.com", 
+    "http://localhost:3000"
+]}})
 
 # Cache for geocoding results to avoid repeated API calls
 geocode_cache = {}

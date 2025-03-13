@@ -35,7 +35,9 @@ const AsthmaSafeRoutePlanner = () => {
   const [customDestination, setCustomDestination] = useState(true);
 
   // API base URL - in production, point to your deployed backend
-  const API_URL = 'http://localhost:5000';
+  const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://bluebreathe-backend.onrender.com';
 
   // Sample location suggestions - Malaysian locations
   const sampleLocations = [
