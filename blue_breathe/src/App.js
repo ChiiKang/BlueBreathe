@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Wind, Thermometer, Droplets, Sun, AlertTriangle, MapPin, Activity, Users, Calendar } from 'lucide-react';
+import { Bell, Wind, Thermometer, Droplets, Sun, AlertTriangle, MapPin, Activity, Users, Calendar, Navigation } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import AsthmaSafeRoutePlanner from './components/AsthmaSafeRoutePlanner';
+import EducationalInsights from './components/EducationalInsights';
 
 const AirQualityDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [userLocation, setUserLocation] = useState('New York, NY');
+  const [userLocation, setUserLocation] = useState('Kuala Lumpur, MY');
   const [currentAQI, setCurrentAQI] = useState(42);
   const [riskLevel, setRiskLevel] = useState('Good');
   const [alertsEnabled, setAlertsEnabled] = useState(true);
@@ -69,16 +71,13 @@ const AirQualityDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
             <Activity className="h-6 w-6 mr-2 text-blue-500" />
-            AsthmaAir Monitor
+            Blue Breath
           </h1>
           <div className="flex items-center space-x-4">
             <div className="flex items-center text-sm text-gray-600">
               <MapPin className="h-4 w-4 mr-1" />
               {userLocation}
             </div>
-            <button className="p-1 rounded-full text-gray-400 hover:text-gray-500">
-              <Bell className="h-6 w-6" />
-            </button>
           </div>
         </div>
       </header>
@@ -87,19 +86,19 @@ const AirQualityDashboard = () => {
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex space-x-8">
-            {['dashboard', 'analytics', 'alerts', 'profiles'].map((tab) => (
-              <button
-                key={tab}
-                className={`px-3 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === tab 
-                    ? 'border-blue-500 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+          {['dashboard', 'routes', 'learn-about-air-quality'].map((tab) => (
+            <button
+              key={tab}
+              className={`px-3 py-4 text-sm font-medium border-b-2 ${
+                activeTab === tab 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'routes' ? 'Route Planner' : tab.replace(/-/g, ' ').charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
           </div>
         </div>
       </nav>
@@ -268,164 +267,26 @@ const AirQualityDashboard = () => {
             </>
           )}
 
-          {activeTab === 'alerts' && (
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg font-medium text-gray-900">Alert Settings</h3>
+          {activeTab === 'routes' && (
+            <div className="bg-white overflow-hidden shadow rounded-lg h-full">
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Asthma-Safe Route Planner</h3>
+                <p className="mt-1 text-sm text-gray-500">Find travel routes with minimal exposure to pollutants</p>
               </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Alert Thresholds</h4>
-                    <div className="mt-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <input id="aqi-alerts" name="aqi-alerts" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" defaultChecked />
-                          <label htmlFor="aqi-alerts" className="ml-2 block text-sm text-gray-900">
-                            AQI exceeds
-                          </label>
-                        </div>
-                        <select className="mt-1 block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                          <option>50</option>
-                          <option>100</option>
-                          <option>150</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <input id="pm25-alerts" name="pm25-alerts" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" defaultChecked />
-                          <label htmlFor="pm25-alerts" className="ml-2 block text-sm text-gray-900">
-                            PM2.5 exceeds
-                          </label>
-                        </div>
-                        <select className="mt-1 block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                          <option>12 μg/m³</option>
-                          <option>35 μg/m³</option>
-                          <option>55 μg/m³</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <input id="pollen-alerts" name="pollen-alerts" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" defaultChecked />
-                          <label htmlFor="pollen-alerts" className="ml-2 block text-sm text-gray-900">
-                            Pollen count is
-                          </label>
-                        </div>
-                        <select className="mt-1 block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                          <option>Moderate</option>
-                          <option>High</option>
-                          <option>Very High</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Notification Methods</h4>
-                    <div className="mt-4 space-y-4">
-                      <div className="flex items-center">
-                        <input id="push-notifications" name="push-notifications" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" defaultChecked />
-                        <label htmlFor="push-notifications" className="ml-2 block text-sm text-gray-900">
-                          Push notifications
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="email-notifications" name="email-notifications" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" defaultChecked />
-                        <label htmlFor="email-notifications" className="ml-2 block text-sm text-gray-900">
-                          Email
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input id="sms-notifications" name="sms-notifications" type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-                        <label htmlFor="sms-notifications" className="ml-2 block text-sm text-gray-900">
-                          SMS
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Alert Frequency</h4>
-                    <div className="mt-4">
-                      <select className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <option>Immediately when conditions change</option>
-                        <option>Maximum once per hour</option>
-                        <option>Maximum once per day</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-5">
-                    <div className="flex justify-end">
-                      <button type="button" className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Cancel
-                      </button>
-                      <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <div className="h-full">
+                <AsthmaSafeRoutePlanner />
               </div>
             </div>
           )}
 
-          {activeTab === 'profiles' && (
+          {activeTab === 'learn-about-air-quality' && (
             <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Child Profiles</h3>
-                  <p className="mt-1 max-w-2xl text-sm text-gray-500">Manage your children's asthma profiles</p>
-                </div>
-                <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  Add Profile
-                </button>
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">Learn About Air Quality</h3>
+                <p className="mt-1 text-sm text-gray-500">Educational content, self-tests, and preventive measures</p>
               </div>
-              <div className="border-t border-gray-200">
-                <div className="px-4 py-5 sm:p-6">
-                  {childProfiles.map((profile) => (
-                    <div key={profile.id} className="mb-6 border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 rounded-full p-3">
-                            <Users className="h-6 w-6 text-blue-500" />
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="text-lg font-medium text-gray-900">{profile.name}</h4>
-                            <p className="text-sm text-gray-500">Age: {profile.age}</p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
-                          <button className="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-gray-50 p-3 rounded">
-                          <div className="text-sm font-medium text-gray-500">Asthma Severity</div>
-                          <div className="mt-1 font-medium">{profile.asthmaLevel}</div>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <div className="text-sm font-medium text-gray-500">Last Flare-up</div>
-                          <div className="mt-1 font-medium">{profile.lastFlareUp}</div>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <div className="text-sm font-medium text-gray-500">Medication</div>
-                          <div className="mt-1 font-medium">Albuterol</div>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <div className="text-sm font-medium text-gray-500">Triggers</div>
-                          <div className="mt-1 font-medium">Pollen, Exercise, Cold air</div>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">View Detailed History</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="h-full">
+                <EducationalInsights />
               </div>
             </div>
           )}
