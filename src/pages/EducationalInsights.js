@@ -60,7 +60,6 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   },
 }));
 
-// 
 const educationalContent = [
   {
     id: 'basics',
@@ -161,12 +160,18 @@ const quizQuestions = [
 
 function EducationalInsights() {
   const [tabValue, setTabValue] = useState(0);
+  const [preventiveTabValue, setPreventiveTabValue] = useState(0); // 新增预防措施选项卡状态
   const [quizAnswers, setQuizAnswers] = useState({});
   const [showQuizResults, setShowQuizResults] = useState(false);
 
   // 处理标签页变化
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+  };
+
+  // 处理预防措施选项卡变化
+  const handlePreventiveTabChange = (event, newValue) => {
+    setPreventiveTabValue(newValue);
   };
 
   // 处理问卷答案选择
@@ -278,25 +283,43 @@ function EducationalInsights() {
           {/* 预防措施 */}
           {tabValue === 1 && (
             <Box>
-              <Grid container spacing={4}>
-                {preventiveMeasures.map((measure, index) => (
-                  <Grid item xs={12} key={index}>
-                    <StyledPaper>
-                      <Typography variant="h6" component="h3" gutterBottom>
-                        {measure.title}
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Box component="ul" sx={{ pl: 2 }}>
-                        {measure.steps.map((step, stepIndex) => (
-                          <Box component="li" key={stepIndex} sx={{ mb: 1 }}>
-                            <Typography variant="body1">{step}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    </StyledPaper>
-                  </Grid>
-                ))}
-              </Grid>
+              <Typography variant="h5" component="h3" gutterBottom sx={{ mb: 3 }}>
+                Precautionary Measures for Asthma Patients
+              </Typography>
+              
+              {/* 预防措施选项卡 */}
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                <Tabs 
+                  value={preventiveTabValue} 
+                  onChange={handlePreventiveTabChange} 
+                  aria-label="preventive measures tabs"
+                  variant="fullWidth"
+                  sx={{ mb: 2 }}
+                >
+                  {preventiveMeasures.map((measure, index) => (
+                    <Tab label={measure.title} id={`preventive-tab-${index}`} key={index} />
+                  ))}
+                </Tabs>
+              </Box>
+              
+              {/* 预防措施内容 */}
+              {preventiveMeasures.map((measure, index) => (
+                preventiveTabValue === index && (
+                  <StyledPaper key={index}>
+                    <Typography variant="h6" component="h3" gutterBottom>
+                      {measure.title}
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+                    <Box component="ul" sx={{ pl: 2 }}>
+                      {measure.steps.map((step, stepIndex) => (
+                        <Box component="li" key={stepIndex} sx={{ mb: 1 }}>
+                          <Typography variant="body1">{step}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </StyledPaper>
+                )
+              ))}
             </Box>
           )}
           
