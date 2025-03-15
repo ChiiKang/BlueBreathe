@@ -11,7 +11,9 @@ import {
   CardMedia, 
   Tabs, 
   Tab,
-  Divider
+  Divider,
+  Modal,
+  Fade
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -163,6 +165,7 @@ function EducationalInsights() {
   const [preventiveTabValue, setPreventiveTabValue] = useState(0); // 新增预防措施选项卡状态
   const [quizAnswers, setQuizAnswers] = useState({});
   const [showQuizResults, setShowQuizResults] = useState(false);
+  const [showRewardModal, setShowRewardModal] = useState(false); // 新增奖励弹窗状态
 
   // 处理标签页变化
   const handleTabChange = (event, newValue) => {
@@ -185,12 +188,23 @@ function EducationalInsights() {
   // 提交问卷
   const handleQuizSubmit = () => {
     setShowQuizResults(true);
+    // 检查是否所有问题都回答正确
+    const score = calculateQuizScore();
+    if (score.score === score.total) {
+      setShowRewardModal(true);
+    }
   };
 
   // 重置问卷
   const handleQuizReset = () => {
     setQuizAnswers({});
     setShowQuizResults(false);
+    setShowRewardModal(false); // 重置时关闭奖励弹窗
+  };
+
+  // 关闭奖励弹窗
+  const handleCloseRewardModal = () => {
+    setShowRewardModal(false);
   };
 
   // 计算问卷得分
@@ -431,6 +445,45 @@ function EducationalInsights() {
           © 2025 Air Quality and Asthma Education Platform | Data for Educational Purposes Only
         </Typography>
       </Box>
+      
+      {/* 奖励弹窗 */}
+      <Modal
+        open={showRewardModal}
+        onClose={handleCloseRewardModal}
+        aria-labelledby="reward-modal-title"
+        aria-describedby="reward-modal-description"
+        closeAfterTransition
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Fade in={showRewardModal}>
+          <Box sx={{
+            bgcolor: 'background.paper',
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            maxWidth: 400,
+            textAlign: 'center',
+            position: 'relative',
+            outline: 'none',
+          }}>
+            <Typography id="reward-modal-title" variant="h4" component="h2" sx={{ mb: 2, color: 'primary.main', fontWeight: 'bold' }}>
+              Bingo! Congratulations!
+            </Typography>
+            <Typography id="reward-modal-description" variant="body1" sx={{ mb: 3 }}>
+              You've answered all questions correctly! Great job on mastering the knowledge about air quality and asthma management.
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Button variant="contained" onClick={handleCloseRewardModal}>
+                Close
+              </Button>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
     </Container>
   );
 }
