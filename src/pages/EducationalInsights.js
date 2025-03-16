@@ -70,6 +70,13 @@ const educationalContent = [
     videoLink: 'https://www.youtube.com/embed/rn9eUIbqCPU',
   },
   {
+    id: 'pollutant-effects',
+    title: 'Association between air pollutant indicators and asthma incidence',
+    content: 'This table shows the effects of different air pollutants at specific concentrations on asthma symptoms, acute exacerbations, hospitalization rates, and lung function',
+    image: '/relation between air pollutant and asthma.png',
+    reference: 'Tiotiu, A. I., Novakova, P., Nedeva, D., Chong-Neto, H. J., Novakova, S., Steiropoulos, P., & Kowal, K. (2020). Impact of Air Pollution on Asthma Outcomes. International journal of environmental research and public health, 17(17), 6212.'
+  },
+  {
     id: 'triggers',
     title: 'Asthma Symptom Self-Check',
     content: 'Dry cough, sleep disturbances, frequent yawning and sighing, heartburn, and fatigue are some symptoms of asthma. If you experience these symptoms, seek medical attention promptly.',
@@ -126,8 +133,8 @@ const preventiveMeasures = [
   },
 ];
 
-// 自测问卷数据
-const quizQuestions = [
+// 自测问卷数据 - 完整题库
+const quizQuestionBank = [
   {
     question: 'Which of the following is NOT an indicator for assessing air quality?',
     options: ['PM2.5', 'AQI', 'BMI', 'O3'],
@@ -158,14 +165,86 @@ const quizQuestions = [
     correctAnswer: 'Give the child a large amount of water',
     explanation: 'During an asthma attack, giving a child a large amount of water may increase the risk of choking. The child should be kept upright and given prescribed rescue medication.'
   },
+  {
+    question: 'Which gas is commonly associated with traffic pollution and can trigger asthma attacks?',
+    options: ['Nitrogen dioxide (NO₂)', 'Carbon dioxide (CO₂)', 'Oxygen (O₂)', 'Argon (Ar)'],
+    correctAnswer: 'Nitrogen dioxide (NO₂)',
+    explanation: 'Nitrogen dioxide (NO₂) is emitted by vehicles and can irritate the lungs, triggering asthma symptoms.'
+  },
+  {
+    question: 'Which household product can emit pollutants harmful to people with asthma?',
+    options: ['Water-based paints', 'Air fresheners', 'Baking soda', 'White vinegar'],
+    correctAnswer: 'Air fresheners',
+    explanation: 'Air fresheners often release chemicals called VOCs, which can irritate respiratory systems and trigger asthma.'
+  },
+  {
+    question: 'Which type of air pollution is characterized by very small particles penetrating deep into the lungs?',
+    options: ['PM10', 'PM2.5', 'SO₂', 'CO₂'],
+    correctAnswer: 'PM2.5',
+    explanation: 'PM2.5 particles are very tiny (diameter less than 2.5 micrometers), allowing them to penetrate deeply into the respiratory system and exacerbate asthma.'
+  },
+  {
+    question: 'Which weather event can temporarily reduce outdoor air pollution levels?',
+    options: ['Fog', 'Heavy rain', 'Sunny weather', 'Heat waves'],
+    correctAnswer: 'Heavy rain',
+    explanation: 'Heavy rain can wash pollutants from the air temporarily, improving outdoor air quality.'
+  },
+  {
+    question: 'Which action is helpful during days of high air pollution for children with asthma?',
+    options: ['Playing outdoors', 'Keeping windows open all day', 'Reducing outdoor activities', 'Using scented sprays indoors'],
+    correctAnswer: 'Reducing outdoor activities',
+    explanation: 'Reducing outdoor activities minimizes exposure to pollutants, beneficial for children with asthma.'
+  },
+  {
+    question: 'What is a common indoor allergen that can trigger asthma?',
+    options: ['Dust mites', 'Pure water vapor', 'Carbon dioxide', 'Oxygen'],
+    correctAnswer: 'Dust mites',
+    explanation: 'Dust mites, common indoor allergens, frequently trigger asthma attacks.'
+  },
+  {
+    question: 'Why should asthmatics avoid exercising outdoors during rush hour?',
+    options: ['Higher levels of pollutants', 'Cooler temperatures', 'Increased humidity', 'Lower levels of oxygen'],
+    correctAnswer: 'Higher levels of pollutants',
+    explanation: 'Pollution from vehicles is higher during rush hour, increasing risks of asthma symptoms during outdoor exercise.'
+  },
+  {
+    question: 'What is the recommended indoor humidity level to help control asthma?',
+    options: ['10%-20%', '30%-50%', '70%-80%', '90%-100%'],
+    correctAnswer: '30%-50%',
+    explanation: 'Maintaining indoor humidity levels between 30%-50% reduces dust mites and mold growth, improving conditions for asthmatics.'
+  },
 ];
+
+// 当前问卷的题目 - 将在组件初始化和重置时随机选择
+const QUIZ_QUESTIONS_COUNT = 5; // 每次测试显示的题目数量
 
 function EducationalInsights() {
   const [tabValue, setTabValue] = useState(0);
-  const [preventiveTabValue, setPreventiveTabValue] = useState(0); // 新增预防措施选项卡状态
+  const [preventiveTabValue, setPreventiveTabValue] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [showQuizResults, setShowQuizResults] = useState(false);
-  const [showRewardModal, setShowRewardModal] = useState(false); // 新增奖励弹窗状态
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState([]);
+
+  // 随机选择题目的函数
+  const getRandomQuestions = () => {
+    // 复制题库数组，避免修改原数组
+    const shuffled = [...quizQuestionBank];
+    
+    // Fisher-Yates 洗牌算法
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // 返回前QUIZ_QUESTIONS_COUNT个题目
+    return shuffled.slice(0, QUIZ_QUESTIONS_COUNT);
+  };
+
+  // 在组件初始化时随机选择题目
+  React.useEffect(() => {
+    setQuizQuestions(getRandomQuestions());
+  }, []);
 
   // 处理标签页变化
   const handleTabChange = (event, newValue) => {
@@ -195,11 +274,13 @@ function EducationalInsights() {
     }
   };
 
-  // 重置问卷
+  // 重置问卷 - 修改为重置并随机选择新题目
   const handleQuizReset = () => {
     setQuizAnswers({});
     setShowQuizResults(false);
-    setShowRewardModal(false); // 重置时关闭奖励弹窗
+    setShowRewardModal(false);
+    // 重新随机选择题目
+    setQuizQuestions(getRandomQuestions());
   };
 
   // 关闭奖励弹窗
@@ -243,24 +324,29 @@ function EducationalInsights() {
           {tabValue === 0 && (
             <Box>
               <Grid container spacing={4}>
-                {educationalContent.map((content) => (
-                  <Grid item xs={12} key={content.id}>
+                {educationalContent.map((content, index) => (
+                  <Grid item xs={12} md={6} key={content.id}>
                     <InfoCard>
-                      {content.image && (
-                        <CardMedia
-                          component="img"
-                          height="140"
-                          image={content.image}
-                          alt={content.title}
-                        />
-                      )}
                       <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
                           {content.title}
                         </Typography>
+                        {content.image && (
+                          <CardMedia
+                            component="img"
+                            sx={{ maxHeight: "400px", objectFit: "contain", mb: 2 }}
+                            image={content.image}
+                            alt={content.title}
+                          />
+                        )}
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                           {content.content}
                         </Typography>
+                        {content.reference && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                            Reference: {content.reference}
+                          </Typography>
+                        )}
                         {content.videoLink && (
                           <Box sx={{ mt: 2 }}>
                             <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
@@ -275,15 +361,6 @@ function EducationalInsights() {
                                 allowFullScreen
                               />
                             </Box>
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
-                              href={content.videoLink.replace('embed/', 'watch?v=')} 
-                              target="_blank"
-                              sx={{ mt: 1 }}
-                            >
-                              Watch on YouTube
-                            </Button>
                           </Box>
                         )}
                       </CardContent>
