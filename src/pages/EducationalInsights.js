@@ -16,8 +16,11 @@ import {
   Fade
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import HomeIcon from '@mui/icons-material/Home';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import MedicationIcon from '@mui/icons-material/Medication';
+import SpaIcon from '@mui/icons-material/Spa';
 
-// 样式化组件
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   height: '100%',
@@ -93,6 +96,8 @@ const educationalContent = [
 const preventiveMeasures = [
   {
     title: 'Indoor Air Quality Management',
+    icon: HomeIcon,
+    videoLink: 'https://www.youtube.com/embed/yauZ-B8uGPk',
     steps: [
       'Use an air purifier with HEPA filter',
       'Maintain proper indoor humidity (40-50%)',
@@ -103,6 +108,7 @@ const preventiveMeasures = [
   },
   {
     title: 'Outdoor Activity Adjustments',
+    icon: DirectionsRunIcon,
     steps: [
       'Monitor daily air quality forecasts',
       'Reduce outdoor activities when AQI > 100',
@@ -113,27 +119,57 @@ const preventiveMeasures = [
   },
   {
     title: 'Medication Management',
+    icon: MedicationIcon,
     steps: [
       'Take prescribed controller medications as directed',
       'Keep rescue medications readily available',
       'Know the proper usage of your medications',
       'Regularly visit your doctor to assess asthma control',
       'Have a written asthma action plan'
+    ],
+    images: [
+      {
+        src: '/plan.png',
+        title: 'Action Plan'
+      },
+      {
+        src: '/medicine.png',
+        title: 'Controller Medications'
+      },
+      {
+        src: '/inhaler.png',
+        title: 'Rescue Inhaler'
+      },
+      {
+        src: '/doctor.png',
+        title: 'Regular Doctor Visits'
+      }
     ]
   },
   {
     title: 'Lifestyle Adjustments',
-    steps: [
-      'Maintain a regular sleep schedule and get enough sleep',
-      'Eat a balanced diet to boost immunity',
-      'Engage in breathing exercises and physical activity appropriately',
-      'Minimize exposure to allergens such as pet dander',
-      'Keep a stable mood and avoid drastic emotional fluctuations'
+    icon: SpaIcon,
+    images: [
+      {
+        src: '/Maintain a regular sleep schedule and get enough sleep.png',
+        title: 'Maintain a regular sleep schedule and get enough sleep'
+      },
+      {
+        src: '/Eat a balanced diet to boost immunity.png',
+        title: 'Eat a balanced diet to boost immunity'
+      },
+      {
+        src: '/Engage in breathing exercises and physical activity appropriately.png',
+        title: 'Engage in breathing exercises and physical activity appropriately'
+      },
+      {
+        src: '/Minimize exposure to allergens such as pet dander.png',
+        title: 'Minimize exposure to allergens such as pet dander'
+      }
     ]
   },
 ];
 
-// 自测问卷数据 - 完整题库
 const quizQuestionBank = [
   {
     question: 'Which of the following is NOT an indicator for assessing air quality?',
@@ -215,8 +251,8 @@ const quizQuestionBank = [
   },
 ];
 
-// 当前问卷的题目 - 将在组件初始化和重置时随机选择
-const QUIZ_QUESTIONS_COUNT = 5; // 每次测试显示的题目数量
+// Current questionnaire questions - will be randomly selected during component initialization and reset
+const QUIZ_QUESTIONS_COUNT = 5; 
 
 function EducationalInsights() {
   const [tabValue, setTabValue] = useState(0);
@@ -226,37 +262,32 @@ function EducationalInsights() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState([]);
 
-  // 随机选择题目的函数
+// Randomly select the function of the problem
   const getRandomQuestions = () => {
-    // 复制题库数组，避免修改原数组
+// Copy the question bank array to avoid modifying the original array
     const shuffled = [...quizQuestionBank];
     
-    // Fisher-Yates 洗牌算法
+// Fisher-Yates shuffling algorithm
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    
-    // 返回前QUIZ_QUESTIONS_COUNT个题目
     return shuffled.slice(0, QUIZ_QUESTIONS_COUNT);
   };
 
-  // 在组件初始化时随机选择题目
+// Randomly select a topic during component initialization
   React.useEffect(() => {
     setQuizQuestions(getRandomQuestions());
   }, []);
 
-  // 处理标签页变化
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // 处理预防措施选项卡变化
   const handlePreventiveTabChange = (event, newValue) => {
     setPreventiveTabValue(newValue);
   };
 
-  // 处理问卷答案选择
   const handleQuizAnswer = (questionIndex, answer) => {
     setQuizAnswers(prev => ({
       ...prev,
@@ -264,31 +295,28 @@ function EducationalInsights() {
     }));
   };
 
-  // 提交问卷
   const handleQuizSubmit = () => {
     setShowQuizResults(true);
-    // 检查是否所有问题都回答正确
+// Check that all questions are answered correctly
     const score = calculateQuizScore();
     if (score.score === score.total) {
       setShowRewardModal(true);
     }
   };
 
-  // 重置问卷 - 修改为重置并随机选择新题目
+// Reset questionnaire - Modify to reset and randomly select a new question
   const handleQuizReset = () => {
     setQuizAnswers({});
     setShowQuizResults(false);
     setShowRewardModal(false);
-    // 重新随机选择题目
+
     setQuizQuestions(getRandomQuestions());
   };
 
-  // 关闭奖励弹窗
   const handleCloseRewardModal = () => {
     setShowRewardModal(false);
   };
 
-  // 计算问卷得分
   const calculateQuizScore = () => {
     let correctCount = 0;
     quizQuestions.forEach((q, index) => {
@@ -309,7 +337,7 @@ function EducationalInsights() {
         Air Quality and Asthma Education Platform
       </Typography>
 
-      {/* 教育内容标签页 */}
+      {/* Educational content TAB*/}
       <Box sx={{ mb: 6 }}>
         <StyledPaper>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -320,7 +348,7 @@ function EducationalInsights() {
             </Tabs>
           </Box>
           
-          {/* 教育内容 */}
+          {/* Educational content */}
           {tabValue === 0 && (
             <Box>
               <Grid container spacing={4}>
@@ -371,14 +399,14 @@ function EducationalInsights() {
             </Box>
           )}
           
-          {/* 预防措施 */}
+          {/* precautionary measures */}
           {tabValue === 1 && (
             <Box>
               <Typography variant="h5" component="h3" gutterBottom sx={{ mb: 3 }}>
                 Precautionary Measures for Asthma Patients
               </Typography>
               
-              {/* 预防措施选项卡 */}
+              {/* precautionary measures tab */}
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs 
                   value={preventiveTabValue} 
@@ -388,12 +416,18 @@ function EducationalInsights() {
                   sx={{ mb: 2 }}
                 >
                   {preventiveMeasures.map((measure, index) => (
-                    <Tab label={measure.title} id={`preventive-tab-${index}`} key={index} />
+                    <Tab 
+                      label={measure.title} 
+                      id={`preventive-tab-${index}`} 
+                      key={index} 
+                      icon={<measure.icon />}
+                      iconPosition="start"
+                    />
                   ))}
                 </Tabs>
               </Box>
               
-              {/* 预防措施内容 */}
+              {/*precautionary measures content */}
               {preventiveMeasures.map((measure, index) => (
                 preventiveTabValue === index && (
                   <StyledPaper key={index}>
@@ -401,20 +435,130 @@ function EducationalInsights() {
                       {measure.title}
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
-                    <Box component="ul" sx={{ pl: 2 }}>
-                      {measure.steps.map((step, stepIndex) => (
-                        <Box component="li" key={stepIndex} sx={{ mb: 1 }}>
-                          <Typography variant="body1">{step}</Typography>
+                    {measure.steps && measure.images ? (
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Grid container spacing={2}>
+                            {measure.images.map((image, imageIndex) => (
+                              <Grid item xs={12} sm={6} key={imageIndex}>
+                                <Paper elevation={2} sx={{ 
+                                  p: 2, 
+                                  height: '100%',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  borderRadius: 2,
+                                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                                  '&:hover': {
+                                    transform: 'translateY(-5px)',
+                                    boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                                  }
+                                }}>
+                                  <CardMedia
+                                    component="img"
+                                    sx={{ 
+                                      height: 'auto', 
+                                      maxHeight: 150, 
+                                      objectFit: 'contain',
+                                      mb: 2,
+                                      borderRadius: 1
+                                    }}
+                                    image={image.src}
+                                    alt={image.title}
+                                  />
+                                  <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                                    {image.title}
+                                  </Typography>
+                                </Paper>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <Box component="ul" sx={{ pl: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            {measure.steps.map((step, stepIndex) => (
+                              <Box component="li" key={stepIndex} sx={{ mb: 1, textAlign: 'left' }}>
+                                <Typography variant="body1">{step}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    ) : measure.steps && measure.videoLink ? (
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                            <Box sx={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px', mb: 1 }}>
+                              <iframe
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                                src={measure.videoLink}
+                                title={measure.title}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Box component="ul" sx={{ pl: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                              {measure.steps.map((step, stepIndex) => (
+                                <Box component="li" key={stepIndex} sx={{ mb: 1, textAlign: 'left' }}>
+                                  <Typography variant="body1">{step}</Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Grid>
+                        </Grid>
+                    ) : measure.steps ? (
+                        <Box component="ul" sx={{ pl: 2 }}>
+                          {measure.steps.map((step, stepIndex) => (
+                            <Box component="li" key={stepIndex} sx={{ mb: 1 }}>
+                              <Typography variant="body1">{step}</Typography>
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
-                    </Box>
+                    ) : measure.images ? (
+                      <Grid container spacing={2}>
+                        {measure.images.map((image, imageIndex) => (
+                          <Grid item xs={12} sm={6} key={imageIndex}>
+                            <Paper elevation={2} sx={{ 
+                              p: 2, 
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              borderRadius: 2,
+                              transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-5px)',
+                                boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                              }
+                            }}>
+                              <CardMedia
+                                component="img"
+                                sx={{ 
+                                  height: 'auto', 
+                                  maxHeight: 200, 
+                                  objectFit: 'contain',
+                                  mb: 2,
+                                  borderRadius: 1
+                                }}
+                                image={image.src}
+                                alt={image.title}
+                              />
+                              <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                                {image.title}
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : null}
                   </StyledPaper>
                 )
               ))}
             </Box>
           )}
           
-          {/* 自测问卷 */}
+          {/* quiz */}
           {tabValue === 2 && (
             <Box>
               {showQuizResults ? (
@@ -516,14 +660,14 @@ function EducationalInsights() {
         </StyledPaper>
       </Box>
       
-      {/* 底部信息 */}
+      {/* Bottom information */}
       <Box sx={{ textAlign: 'center', mt: 6, color: 'text.secondary' }}>
         <Typography variant="body2">
           © 2025 Air Quality and Asthma Education Platform | Data for Educational Purposes Only
         </Typography>
       </Box>
       
-      {/* 奖励弹窗 */}
+      {/* pop-up reward */}
       <Modal
         open={showRewardModal}
         onClose={handleCloseRewardModal}
