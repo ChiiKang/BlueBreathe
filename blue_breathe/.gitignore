@@ -1,0 +1,30 @@
+# Node.js (Frontend)
+node_modules/
+/blue_breathe/build
+/blue_breathe/.env
+/blue_breathe/npm-debug.log*
+/blue_breathe/yarn-debug.log*
+/blue_breathe/yarn-error.log*
+
+# Build output
+build/
+
+# Python (Backend)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+*.log
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
