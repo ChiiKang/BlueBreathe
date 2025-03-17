@@ -44,35 +44,63 @@ const AirQualityDashboard = () => {
   const [monthlyData, setMonthlyData] = useState([]);
 
   //7day-forecat
-  const [stations, setStations] = useState([]);
-  const [selectedStation, setSelectedStation] = useState('');
+  // const [stations, setStations] = useState([]);
+  // const [selectedStation, setSelectedStation] = useState('');
   const [chartData, setChartData] = useState([]);
 
-  useEffect(() => {
-    const fetchStations = async () => {
-      try {
-        const response = await fetch('/stations');
-        const data = await response.json();
-        setStations(data);
-        if (data.length > 0) {
-          setSelectedStation(data[0]);
-        }
-      } catch (err) {
-        console.error("Error fetching stations:", err);
-      }
-    };
-    fetchStations();
-  }, []);
+  // useEffect(() => {
+  //   const fetchStations = async () => {
+  //     try {
+  //       const response = await fetch('/stations');
+  //       const data = await response.json();
+  //       setStations(data);
+  //       if (data.length > 0) {
+  //         setSelectedStation(data[0]);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching stations:", err);
+  //     }
+  //   };
+  //   fetchStations();
+  // }, []);
+
+  // useEffect(() => {
+  //   if (selectedStation) {
+  //     const fetchData = async () => {
+  //       try {
+  //         const response = await fetch(`/data/${selectedStation}`);
+  //         const data = await response.json();
+  //         const historical = data.historical;
+  //         const forecast = data.forecast;
+
+  //         const mergedData = historical.map(d => ({
+  //           date: d.date,
+  //           aqi: d.aqi,
+  //           isForecast: false
+  //         })).concat(forecast.map(d => ({
+  //           date: d.date,
+  //           aqi: d.aqi,
+  //           isForecast: true
+  //         })));
+          
+  //         setChartData(mergedData);
+          
+  //       } catch (err) {
+  //         console.error("Error fetching AQI data:", err);
+  //       }
+  //     };
+  //     fetchData();
+  //   }
+  // }, [selectedStation]);
 
   useEffect(() => {
-    if (selectedStation) {
+    if (selectedCityName) { 
       const fetchData = async () => {
         try {
-          const response = await fetch(`/data/${selectedStation}`);
+          const response = await fetch(`/data/${encodeURIComponent(selectedCityName)}`);
           const data = await response.json();
           const historical = data.historical;
           const forecast = data.forecast;
-
           const mergedData = historical.map(d => ({
             date: d.date,
             aqi: d.aqi,
@@ -91,7 +119,7 @@ const AirQualityDashboard = () => {
       };
       fetchData();
     }
-  }, [selectedStation]);
+  }, [selectedCityName]);
 
   // Determine whether it is a prediction segment
   const CustomTooltip = ({ active, payload, label }) => {
@@ -110,9 +138,6 @@ const AirQualityDashboard = () => {
     }
     return null;
   };
-
-
-
 
 
   const [childProfiles, setChildProfiles] = useState([
@@ -245,7 +270,10 @@ const AirQualityDashboard = () => {
       setCurrentAQI(aqi);
       setUserLocation(location);
       setRiskLevel(determineRiskLevel(aqi));
-      
+
+      // update selectedStation
+      // setSelectedStation(location);
+
       // Add to allCityData if not already there
       setAllCityData(prevData => ({
         ...prevData,
@@ -451,7 +479,9 @@ const AirQualityDashboard = () => {
               <div className="md:col-span-2 flex flex-col h-full" >
                 <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">7-days AQI Forecast</h3>
-                  <div className="flex items-center mb-4">
+
+
+                  {/* <div className="flex items-center mb-4">
                     <label htmlFor="station-select" className="mr-3 text-sm font-medium text-gray-700">Choose Station:</label>
                     <select
                       id="station-select"
@@ -463,7 +493,8 @@ const AirQualityDashboard = () => {
                         <option key={station} value={station}>{station}</option>
                       ))}
                     </select>
-                  </div>
+                  </div> */}
+
                   <div className="h-[500px]">  {/* You can adjust the height yourself */}
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
