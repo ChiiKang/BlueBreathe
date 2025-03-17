@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  Bell,
   Wind,
   Thermometer,
   Droplets,
   Sun,
   AlertTriangle,
-  MapPin,
   Activity,
-  Users,
-  Calendar,
   Navigation,
 } from "lucide-react";
 import {
@@ -20,25 +16,25 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from "recharts";
 
 import dayjs from 'dayjs';
 
 import MapView from "./components/MapView";
 import Weather from "./components/Weather";
-import LocationSearch from "./components/LocationSearch";
+import LocationDropdown from "./components/LocationDropdown";
 import AsthmaSafeRoutePlanner from "./components/AsthmaSafeRoutePlanner";
 import EducationalInsights from "./components/EducationalInsights";
 
 const AirQualityDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [userLocation, setUserLocation] = useState("Kuala Lumpur, MY");
-  const [currentAQI, setCurrentAQI] = useState(2); // Default AQI (Fair)
-  const [riskLevel, setRiskLevel] = useState("Fair");
+  const [userLocation, setUserLocation] = useState("All Stations, Malaysia");
+  const [currentAQI, setCurrentAQI] = useState(0);
+  const [riskLevel, setRiskLevel] = useState("Select a city to see details");
   const [isLoading, setIsLoading] = useState(false);
   const [mapLocation, setMapLocation] = useState(null);
+  const [allCityData, setAllCityData] = useState({});
+  const [selectedCityName, setSelectedCityName] = useState("");
 
   const [weatherData, setWeatherData] = useState(null);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
@@ -160,22 +156,22 @@ const AirQualityDashboard = () => {
   const [weatherFactors, setWeatherFactors] = useState([
     {
       name: "Temperature",
-      value: "Loading...",
+      value: "No city selected",
       icon: <Thermometer className="h-5 w-5" />,
     },
     {
       name: "Humidity",
-      value: "Loading...",
+      value: "No city selected",
       icon: <Droplets className="h-5 w-5" />,
     },
     {
       name: "Wind Speed",
-      value: "Loading...",
+      value: "No city selected",
       icon: <Wind className="h-5 w-5" />,
     },
     {
       name: "UV Index",
-      value: "Loading...",
+      value: "No city selected",
       icon: <Sun className="h-5 w-5" />,
     },
   ]);
@@ -185,40 +181,41 @@ const AirQualityDashboard = () => {
     if (!data) return; // Guard clause to prevent errors with null data
 
     setWeatherData(data);
-    setCurrentAQI(data.aqi || currentAQI); // Fallback to current value if aqi is undefined
-    setRiskLevel(determineRiskLevel(data.aqi || currentAQI));
+    
+    // If AQI was provided by the weather service, update it
+    if (data.aqi && data.aqi !== currentAQI) {
+      setCurrentAQI(data.aqi);
+      setRiskLevel(determineRiskLevel(data.aqi));
+    }
 
     // Update weather factors with real data
-    if (data) {
-      setWeatherFactors([
-        {
-          name: "Temperature",
-          value: data.temperature ? `${data.temperature}°C` : "N/A",
-          icon: <Thermometer className="h-5 w-5" />,
-        },
-        {
-          name: "Humidity",
-          value: data.humidity ? `${data.humidity}%` : "N/A",
-          icon: <Droplets className="h-5 w-5" />,
-        },
-        {
-          name: "Wind Speed",
-          value: data.windSpeed ? `${data.windSpeed} m/s` : "N/A",
-          icon: <Wind className="h-5 w-5" />,
-        },
-        {
-          name: "UV Index",
-          value: data.uv || "N/A",
-          icon: <Sun className="h-5 w-5" />,
-        },
-      ]);
-    }
+    setWeatherFactors([
+      {
+        name: "Temperature",
+        value: data.temperature ? `${data.temperature}°C` : "N/A",
+        icon: <Thermometer className="h-5 w-5" />,
+      },
+      {
+        name: "Humidity",
+        value: data.humidity ? `${data.humidity}%` : "N/A",
+        icon: <Droplets className="h-5 w-5" />,
+      },
+      {
+        name: "Wind Speed",
+        value: data.windSpeed ? `${data.windSpeed} m/s` : "N/A",
+        icon: <Wind className="h-5 w-5" />,
+      },
+      {
+        name: "UV Index",
+        value: data.uv || "N/A",
+        icon: <Sun className="h-5 w-5" />,
+      },
+    ]);
   };
 
   // Handler for pollutants update from Weather component
   const handlePollutantsUpdate = (data) => {
     if (!data || !Array.isArray(data)) return;
-    setPollutants(data);
   };
 
   // Handler for chart data updates
@@ -236,99 +233,99 @@ const AirQualityDashboard = () => {
     }
   };
 
-  // Function to get current weather factors
-  const getWeatherFactors = () => {
-    if (!weatherData) {
-      return [
-        {
-          name: "Temperature",
-          value: "Loading...",
-          icon: <Thermometer className="h-5 w-5" />,
-        },
-        {
-          name: "Humidity",
-          value: "Loading...",
-          icon: <Droplets className="h-5 w-5" />,
-        },
-        {
-          name: "Wind Speed",
-          value: "Loading...",
-          icon: <Wind className="h-5 w-5" />,
-        },
-        {
-          name: "UV Index",
-          value: "Loading...",
-          icon: <Sun className="h-5 w-5" />,
-        },
-      ];
-    }
-
-    return [
-      {
-        name: "Temperature",
-        value: weatherData.temperature ? `${weatherData.temperature}°C` : "N/A",
-        icon: <Thermometer className="h-5 w-5" />,
-      },
-      {
-        name: "Humidity",
-        value: weatherData.humidity ? `${weatherData.humidity}%` : "N/A",
-        icon: <Droplets className="h-5 w-5" />,
-      },
-      {
-        name: "Wind Speed",
-        value: weatherData.windSpeed ? `${weatherData.windSpeed} m/s` : "N/A",
-        icon: <Wind className="h-5 w-5" />,
-      },
-      {
-        name: "UV Index",
-        value: weatherData.uv || "N/A",
-        icon: <Sun className="h-5 w-5" />,
-      },
-    ];
-  };
-
-  // Function to handle location search
-  const handleLocationChange = async (location) => {
+  // Function to handle location selection from dropdown
+  const handleLocationChange = (locationData) => {
     setIsLoading(true);
     try {
-      // For demo purposes, we'll use a simple mapping of locations to coordinates
-      const locationMap = {
-        "kuala lumpur": { lat: 3.139, lon: 101.6869, aqi: 2 },
-        "petaling jaya": { lat: 3.0833, lon: 101.65, aqi: 3 },
-        "shah alam": { lat: 3.0731, lon: 101.518, aqi: 2 },
-        "subang jaya": { lat: 3.0586, lon: 101.5851, aqi: 3 },
-        penang: { lat: 5.4141, lon: 100.3288, aqi: 1 },
-        "johor bahru": { lat: 1.4927, lon: 103.7414, aqi: 3 },
-      };
-
-      // Find the matching location (case insensitive)
-      const locationKey = Object.keys(locationMap).find((key) =>
-        location.toLowerCase().includes(key)
-      );
-
-      if (locationKey) {
-        const { lat, lon, aqi } = locationMap[locationKey];
-        setMapLocation({ lat, lon });
-        setCurrentAQI(aqi);
-        setUserLocation(location);
-        setRiskLevel(determineRiskLevel(aqi));
-      } else {
-        // In a real app, you would call a geocoding API here
-        console.log("Location not found in our demo data");
-        // For demo, we'll just use KL as fallback
-        setMapLocation({ lat: 3.139, lon: 101.6869 });
-        setCurrentAQI(2);
-        setUserLocation(location);
-        setRiskLevel("Fair");
-      }
+      const { location, lat, lon, aqi } = locationData;
+      
+      // Update the selected location
+      setSelectedCityName(location);
+      setMapLocation({ lat, lon });
+      setCurrentAQI(aqi);
+      setUserLocation(location);
+      setRiskLevel(determineRiskLevel(aqi));
+      
+      // Add to allCityData if not already there
+      setAllCityData(prevData => ({
+        ...prevData,
+        [location]: { lat, lon, aqi }
+      }));
     } catch (error) {
-      console.error("Error fetching location data:", error);
+      console.error("Error handling location data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Helper function to determine risk level based on AQI from OpenWeatherMap
+  // Function to handle marker click on the map
+  const handleMapMarkerClick = (cityName, cityData) => {
+    setIsLoading(true);
+    try {
+      // Update the selected location
+      setSelectedCityName(cityName);
+      setMapLocation({ lat: cityData.lat, lon: cityData.lon });
+      setCurrentAQI(cityData.aqi);
+      setUserLocation(cityName);
+      setRiskLevel(determineRiskLevel(cityData.aqi));
+    } catch (error) {
+      console.error("Error handling marker click:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to reset map view to show all of Malaysia
+  const [resetView, setResetView] = useState(false);
+  
+  const handleResetMapView = () => {
+    setMapLocation(null);
+    setSelectedCityName("");
+    setUserLocation("All Stations, Malaysia");
+    setCurrentAQI(0);
+    setRiskLevel("Select a city to see details");
+    // Reset weather factors to "No city selected"
+    setWeatherFactors([
+      {
+        name: "Temperature",
+        value: "No city selected",
+        icon: <Thermometer className="h-5 w-5" />,
+      },
+      {
+        name: "Humidity",
+        value: "No city selected",
+        icon: <Droplets className="h-5 w-5" />,
+      },
+      {
+        name: "Wind Speed",
+        value: "No city selected",
+        icon: <Wind className="h-5 w-5" />,
+      },
+      {
+        name: "UV Index",
+        value: "No city selected",
+        icon: <Sun className="h-5 w-5" />,
+      },
+    ]);
+    
+    // Trigger map reset
+    setResetView(true);
+    // Reset after a short delay
+    setTimeout(() => {
+      setResetView(false);
+    }, 100);
+  };
+
+  // Function to update all city data with AQI values
+  const updateAllCityData = (cityData) => {
+    if (!cityData) return;
+    setAllCityData(prevData => ({
+      ...prevData,
+      ...cityData
+    }));
+  };
+
+  // Helper function to determine risk level based on AQI
   const determineRiskLevel = (aqi) => {
     if (aqi <= 50) {
       return "Good";
@@ -345,37 +342,13 @@ const AirQualityDashboard = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Good":
-        return "bg-green-100 text-green-800";
-      case "Fair":
-        return "bg-blue-100 text-blue-800";
-      case "Moderate":
-        return "bg-yellow-100 text-yellow-800";
-      case "Poor":
-        return "bg-orange-100 text-orange-800";
-      case "Very Poor":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getRiskColor = (aqi) => {
-    if (aqi <= 50) {
-      return "text-green-500"; // Good
-    } else if (aqi <= 100) {
-      return "text-blue-500"; // Fair
-    } else if (aqi <= 150) {
-      return "text-yellow-500"; // Moderate
-    } else if (aqi <= 200) {
-      return "text-orange-500"; // Poor
-    } else if (aqi <= 300) {
-      return "text-red-500"; // Very Unhealthy
-    } else {
-      return "text-purple-600"; // Hazardous
-    }
+    if (aqi <= 50) return "text-green-500"; // Good
+    if (aqi <= 100) return "text-yellow-400"; // Fair (matches button)
+    if (aqi <= 150) return "text-orange-500"; // Moderate (matches button)
+    if (aqi <= 200) return "text-red-600"; // Poor (matches button)
+    if (aqi <= 300) return "text-purple-600"; // Very Unhealthy (matches button)
+    return "text-purple-900"; // Hazardous (matches button)
   };
 
   return (
@@ -395,35 +368,40 @@ const AirQualityDashboard = () => {
             <Activity className="h-6 w-6 mr-2 text-blue-500" />
             Blue Breath
           </h1>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPin className="h-4 w-4 mr-1" />
-              {userLocation}
-            </div>
-          </div>
         </div>
       </header>
 
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex space-x-8">
-            {["dashboard", "routes", "learn-about-air-quality"].map((tab) => (
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-8">
+              {["dashboard", "routes", "learn-about-air-quality"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-3 py-4 text-sm font-medium border-b-2 ${
+                    activeTab === tab
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab === "routes"
+                    ? "Route Planner"
+                    : tab.replace(/-/g, " ").charAt(0).toUpperCase() +
+                      tab.replace(/-/g, " ").slice(1)}
+                </button>
+              ))}
+            </div>
+            {activeTab === "dashboard" && (
               <button
-                key={tab}
-                className={`px-3 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === tab
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-                onClick={() => setActiveTab(tab)}
+                onClick={handleResetMapView}
+                className="px-3 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
               >
-                {tab === "routes"
-                  ? "Route Planner"
-                  : tab.replace(/-/g, " ").charAt(0).toUpperCase() +
-                    tab.replace(/-/g, " ").slice(1)}
+                <Navigation className="h-4 w-4 mr-1" />
+                Show All Stations
               </button>
-            ))}
+            )}
           </div>
         </div>
       </nav>
@@ -433,25 +411,35 @@ const AirQualityDashboard = () => {
         <div className="max-w-7xl mx-auto">
           {activeTab === "dashboard" && (
             <>
-              {/* Location Search and Map */}
+              {/* Location Dropdown and Map */}
               <div className="mb-6 bg-white overflow-hidden shadow rounded-lg">
                 <div className="px-4 py-5 sm:px-6">
                   <h3 className="text-lg font-medium text-gray-900">
-                    Search Location
+                    Select Location
                   </h3>
                   <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Enter a location to view air quality data
+                    Choose a city to view air quality data
                   </p>
                 </div>
                 <div className="px-4 py-5 sm:p-6">
-                  <LocationSearch
-                    onLocationChange={handleLocationChange}
-                    isLoading={isLoading}
-                  />
-                  <div className="h-96 mt-4">
-                    {" "}
-                    {/* Changed from h-64 to h-96 (384px) */}
-                    <MapView location={mapLocation} aqi={currentAQI} />
+                  {/* Create a stacking context for proper z-index behavior */}
+                  <div style={{ position: 'relative', zIndex: 1000 }}>
+                    <LocationDropdown
+                      onLocationChange={handleLocationChange}
+                      isLoading={isLoading}
+                      onAllCityDataUpdate={updateAllCityData}
+                    />
+                  </div>
+                  
+                  {/* Map section */}
+                  <div className="h-96 mt-4" style={{ position: 'relative', zIndex: 1 }}>
+                    <MapView 
+                      location={mapLocation} 
+                      allCityData={allCityData}
+                      selectedLocation={selectedCityName}
+                      onLocationSelect={handleMapMarkerClick}
+                      resetView={resetView}
+                    />
                   </div>
                 </div>
               </div>
@@ -527,35 +515,53 @@ const AirQualityDashboard = () => {
                         </p>
                       </div>
                       <div className="text-center">
-                        <div
-                          className={`text-4xl font-bold ${getRiskColor(
-                            currentAQI
-                          )}`}
-                        >
-                          {currentAQI} AQI
-                        </div>
-                        <div className="text-sm text-gray-500">AQI</div>
+                        {selectedCityName ? (
+                          <div>
+                            <div
+                              className={`text-4xl font-bold ${getRiskColor(
+                                currentAQI
+                              )}`}
+                            >
+                              {currentAQI} AQI
+                            </div>
+                            <div className="text-sm text-gray-500">AQI</div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500">
+                            Select a city to view AQI
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="mt-4">
                       <h4 className="text-base font-medium text-gray-900">
                         Risk Level:{" "}
-                        <span className={getRiskColor(currentAQI)}>
-                          {riskLevel}
-                        </span>
+                        {selectedCityName ? (
+                          <span className={getRiskColor(currentAQI)}>
+                            {riskLevel}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">No city selected</span>
+                        )}
                       </h4>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {riskLevel === "Good"
-                          ? "Air quality is good and poses little or no risk for asthma symptoms."
-                          : riskLevel === "Fair"
-                          ? "Air quality is acceptable but may cause minor symptoms for very sensitive individuals."
-                          : riskLevel === "Moderate"
-                          ? "Members of sensitive groups may experience health effects. Consider medication."
-                          : riskLevel === "Poor"
-                          ? "Health alert: Everyone may experience health effects. Limit outdoor activities."
-                          : "Health warning: Everyone may experience serious health effects. Avoid outdoor activities."}
-                      </p>
+                      {selectedCityName ? (
+                        <p className="mt-1 text-sm text-gray-600">
+                          {riskLevel === "Good"
+                            ? "Air quality is good and poses little or no risk for asthma symptoms."
+                            : riskLevel === "Fair"
+                            ? "Air quality is acceptable but may cause minor symptoms for very sensitive individuals."
+                            : riskLevel === "Moderate"
+                            ? "Members of sensitive groups may experience health effects. Consider medication."
+                            : riskLevel === "Poor"
+                            ? "Health alert: Everyone may experience health effects. Limit outdoor activities."
+                            : "Health warning: Everyone may experience serious health effects. Avoid outdoor activities."}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-sm text-gray-600">
+                          Select a city from the dropdown above to view detailed air quality information.
+                        </p>
+                      )}
                     </div>
 
                     {/* Weather Factors - Inside the Current Air Quality box */}
@@ -564,7 +570,7 @@ const AirQualityDashboard = () => {
                         Weather Factors
                       </h4>
                       <div className="grid grid-cols-2 gap-4">
-                        {getWeatherFactors().map((factor) => (
+                        {weatherFactors.map((factor) => (
                           <div key={factor.name} className="flex items-center">
                             <div className="flex-shrink-0 mr-3 text-gray-400">
                               {factor.icon}
@@ -577,189 +583,6 @@ const AirQualityDashboard = () => {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Two-column layout for Key Pollutants & Weather Factors */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-              {/* Pollutants */}
-              <div className="mb-6 bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Key Pollutants
-                  </h3>
-                </div>
-                <div className="px-4 py-3 sm:p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {pollutants.map((item) => (
-                      <div
-                        key={item.name}
-                        className="bg-gray-50 rounded-lg p-4"
-                      >
-                        <div className="font-medium text-gray-900">
-                          {item.name}
-                        </div>
-                        <div className="text-2xl font-bold mt-1">
-                          {item.value}
-                        </div>
-                        <div
-                          className={`mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            item.status
-                          )}`}
-                        >
-                          {item.status}
-                        </div>
-                        <div className="mt-1 text-xs text-gray-500">
-                          {item.description}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === "analytics" && (
-            <>
-              <div className="mb-6 bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Air Quality & Asthma Correlation
-                  </h3>
-                </div>
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="h-80">
-                    {monthlyData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                          data={monthlyData}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis
-                            yAxisId="left"
-                            domain={[0, 5]}
-                            ticks={[1, 2, 3, 4, 5]}
-                          />
-                          <YAxis yAxisId="right" orientation="right" />
-                          <Tooltip
-                            formatter={(value, name) => {
-                              if (name === "aqi") {
-                                const labels = [
-                                  "",
-                                  "Good",
-                                  "Fair",
-                                  "Moderate",
-                                  "Poor",
-                                  "Very Poor",
-                                ];
-                                return [labels[value] || value, "AQI"];
-                              }
-                              return [
-                                value,
-                                name === "flareUps" ? "Flare-ups" : name,
-                              ];
-                            }}
-                          />
-                          <Area
-                            yAxisId="left"
-                            type="monotone"
-                            name="AQI"
-                            dataKey="aqi"
-                            stroke="#8884d8"
-                            fill="#8884d8"
-                            fillOpacity={0.3}
-                          />
-                          <Area
-                            yAxisId="right"
-                            type="monotone"
-                            name="Flare-ups"
-                            dataKey="flareUps"
-                            stroke="#82ca9d"
-                            fill="#82ca9d"
-                            fillOpacity={0.3}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <div className="text-gray-400">
-                          Loading chart data...
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4 text-sm text-gray-500">
-                    <div className="flex justify-center space-x-8 mb-2">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-purple-300 mr-2"></div>
-                        <span>Air Quality Index (AQI)</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-300 mr-2"></div>
-                        <span>Asthma Flare-ups</span>
-                      </div>
-                    </div>
-                    <div className="text-xs text-center">
-                      AQI Scale: 1=Good, 2=Fair, 3=Moderate, 4=Poor, 5=Very Poor
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6 bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Insights & Recommendations
-                  </h3>
-                </div>
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="space-y-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <AlertTriangle className="h-5 w-5 text-yellow-400" />
-                      </div>
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          Pattern Detected
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Higher asthma flare-ups occur when AQI is Moderate or
-                          worse for 3+ consecutive days.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <Calendar className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          Seasonal Impact
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500">
-                          March-April showed highest correlation between poor
-                          air quality and asthma symptoms.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <Droplets className="h-5 w-5 text-green-500" />
-                      </div>
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          Humidity Factor
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Asthma symptoms increase when humidity exceeds 70%
-                          combined with moderate AQI.
-                        </p>
                       </div>
                     </div>
                   </div>
