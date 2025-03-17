@@ -377,5 +377,21 @@ def get_data(station):
     return jsonify({"historical": historical, "forecast": forecast})
 
 
+# Define port for Render deployment
+port = int(os.environ.get("PORT", 5000))
+
+# Disable debug mode in production
+debug_mode = os.environ.get("ENVIRONMENT") == "development"
+
+# Configure logging
+import logging
+
+if not debug_mode:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
