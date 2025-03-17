@@ -94,25 +94,29 @@ const AirQualityDashboard = () => {
   // }, [selectedStation]);
 
   useEffect(() => {
-    if (selectedCityName) { 
+    if (selectedCityName) {
       const fetchData = async () => {
         try {
-          const response = await fetch(`/data/${encodeURIComponent(selectedCityName)}`);
+          // Encode the station name to handle spaces and special characters
+          const encodedStation = encodeURIComponent(selectedCityName);
+          const response = await fetch(`http://localhost:5000/data/${encodedStation}`);
           const data = await response.json();
-          const historical = data.historical;
-          const forecast = data.forecast;
-          const mergedData = historical.map(d => ({
-            date: d.date,
-            aqi: d.aqi,
-            isForecast: false
-          })).concat(forecast.map(d => ({
-            date: d.date,
-            aqi: d.aqi,
-            isForecast: true
-          })));
-          
-          setChartData(mergedData);
-          
+          if (response.ok) {
+            const historical = data.historical;
+            const forecast = data.forecast;
+            const mergedData = historical.map(d => ({
+              date: d.date,
+              aqi: d.aqi,
+              isForecast: false
+            })).concat(forecast.map(d => ({
+              date: d.date,
+              aqi: d.aqi,
+              isForecast: true
+            })));
+            setChartData(mergedData);
+          } else {
+            console.error("Failed to fetch station data");
+          }
         } catch (err) {
           console.error("Error fetching AQI data:", err);
         }
@@ -120,6 +124,7 @@ const AirQualityDashboard = () => {
       fetchData();
     }
   }, [selectedCityName]);
+  
 
   // Determine whether it is a prediction segment
   const CustomTooltip = ({ active, payload, label }) => {
@@ -495,9 +500,9 @@ const AirQualityDashboard = () => {
                     </select>
                   </div> */}
 
-                  <div className="h-[500px]">  {/* You can adjust the height yourself */}
+                  <div className="h-[450px]">  {/* You can adjust the height yourself */}
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
                           dataKey="date" 
@@ -505,9 +510,10 @@ const AirQualityDashboard = () => {
                           angle={-45} 
                           textAnchor="end" 
                           height={100} 
-                          tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')} 
+                          tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')}
+                          label={{ value: 'Date', position: 'insideBottom', offset: 10 }} 
                         />
-                        <YAxis />
+                        <YAxis label={{ value: 'AQI', angle: -90, position: 'insideLeft', offset: 10 }}/>
                         <Tooltip content={<CustomTooltip />}/>
                         <Line 
                           type="monotone" 

@@ -1,4 +1,3 @@
-import flask
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
@@ -10,8 +9,9 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from slugify import slugify
-import re
 import pandas as pd
+
+from urllib.parse import unquote
 app = Flask(__name__)
 CORS(
     app,
@@ -323,94 +323,43 @@ def get_location_air_quality():
 
 
 #get station data from database
-# @app.route("/stations")
-# def get_stations():
-#     conn = get_db_connection()
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT DISTINCT station_name FROM aqi_records")
-#     stations = [row[0] for row in cursor.fetchall()]
-#     cursor.close()
-#     conn.close()
-#     return jsonify(stations)
+@app.route("/stations")
+def get_stations():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT station_name FROM aqi_records")
+    stations = [row[0] for row in cursor.fetchall()]
+    cursor.close()
+    conn.close()
+    return jsonify(stations)
 
-#get station forecast data from database
-# @app.route("/data/<station>")
-# def get_data(station):
-#     # Clean incoming station name
-#     clean_station = station.lower().strip()
-    
-#     # Remove unwanted words & symbols from incoming station name
-#     cleaned_station = re.sub(r'[^a-zA-Z0-9\s]', '', clean_station)  # Remove special chars
-#     cleaned_station = re.sub(r'\b(malaysia|air|quality)\b', '', cleaned_station)  # Remove "malaysia", "air", "quality"
-#     cleaned_station = re.sub(r'\s+', ' ', cleaned_station).strip()  # Normalize spaces
-    
-#     # Split into keywords
-#     keywords = cleaned_station.split(' ')
-    
-#     # Build REGEXP pattern: match any keyword
-#     regexp_pattern = '|'.join([re.escape(word) for word in keywords if word])  # e.g., "cheras|kuala|lumpur"
-    
-#     conn = get_db_connection()
-#     cursor = conn.cursor(dictionary=True)
-
-#     try:
-#         today = datetime.today().date()
-#         past_7_days = today - timedelta(days=7)
-#         forecast_start = today + timedelta(days=1)
-
-#         # Query historical data
-#         cursor.execute(f"""
-#             SELECT date, aqi 
-#             FROM aqi_records
-#             WHERE LOWER(REPLACE(REPLACE(station_name, '-air-quality', ''), ',', '')) REGEXP %s
-#               AND date >= %s AND date < %s
-#             ORDER BY date
-#         """, (regexp_pattern, past_7_days, forecast_start))
-#         historical = cursor.fetchall()
-
-#         # Query forecast data
-#         cursor.execute(f"""
-#             SELECT date, aqi 
-#             FROM aqi_records
-#             WHERE LOWER(REPLACE(REPLACE(station_name, '-air-quality', ''), ',', '')) REGEXP %s
-#               AND date >= %s
-#             ORDER BY date
-#             LIMIT 7
-#         """, (regexp_pattern, forecast_start))
-#         forecast = cursor.fetchall()
-
-#         return jsonify({
-#             "historical": historical,
-#             "forecast": forecast
-#         })
-
-#     except Exception as e:
-#         print(f"Error fetching station data: {str(e)}")
-#         return jsonify({"error": "Error fetching station data"}), 500
-
-#     finally:
-#         cursor.close()
-#         conn.close()
 
 
 @app.route("/data/<station>")
 def get_data(station):
+
+    station = unquote(station).strip()
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    today = pd.Timestamp.today().normalize()
-    past_7_days = today - pd.Timedelta(days=7)
-    forecast_start = today + pd.Timedelta(days=1)
+    today = datetime.today().date()
+    past_7_days = today - timedelta(days=7)
+    forecast_start = today + timedelta(days=1)
 
+    # Query historical data
     cursor.execute("""
-        SELECT date, aqi FROM aqi_records
+        SELECT date, aqi 
+        FROM aqi_records
         WHERE station_name = %s AND date >= %s AND date < %s
         ORDER BY date
     """, (station, past_7_days, forecast_start))
     historical = cursor.fetchall()
 
+    # Query forecast data
     cursor.execute("""
-        SELECT date, aqi FROM aqi_records
+        SELECT date, aqi 
+        FROM aqi_records
         WHERE station_name = %s AND date >= %s
         ORDER BY date LIMIT 7
     """, (station, forecast_start))
@@ -423,8 +372,6 @@ def get_data(station):
         "historical": historical,
         "forecast": forecast
     })
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
