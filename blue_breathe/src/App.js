@@ -403,7 +403,7 @@ const AirQualityDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
             <Activity className="h-6 w-6 mr-2 text-blue-500" />
-            Blue Breath
+            Blue Breathe
           </h1>
         </div>
       </header>
