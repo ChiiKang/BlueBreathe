@@ -107,7 +107,23 @@ const AirQualityDashboard = () => {
     }
   }, [selectedStation]);
 
-
+  // Determine whether it is a prediction segment
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const isForecast = payload.find(p => p.payload.isForecast); 
+      return (
+        <div className="bg-white p-2 border rounded shadow text-sm">
+          <p className="font-medium mb-1">{label}</p>
+          {isForecast ? (
+            <p className="text-red-500">Forecast AQI : {payload[0].value}</p>
+          ) : (
+            <p className="text-blue-500">Historical AQI : {payload[0].value}</p>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
 
   // Chart data with default empty arrays
@@ -667,7 +683,7 @@ const AirQualityDashboard = () => {
                           tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')} 
                         />
                         <YAxis />
-                        <Tooltip />
+                        <Tooltip content={<CustomTooltip />}/>
 
                         {/* Blue line, the entire AQI line, no gaps */}
                         <Line 
