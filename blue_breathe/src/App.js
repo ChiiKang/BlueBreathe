@@ -398,7 +398,7 @@ const AirQualityDashboard = () => {
         onChartDataUpdate={handleChartDataUpdate}
       />
 
-      {/* Header */}
+      {/* Header Trial */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
