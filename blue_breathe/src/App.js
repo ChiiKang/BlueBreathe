@@ -73,19 +73,32 @@ const AirQualityDashboard = () => {
           const historical = data.historical;
           const forecast = data.forecast;
 
-          const historicalPoints = historical.map(d => ({
-            date: d.date,
-            historicalAQI: d.aqi,
-            forecastAQI: null
-          }));
+          // const historicalPoints = historical.map(d => ({
+          //   date: d.date,
+          //   historicalAQI: d.aqi,
+          //   forecastAQI: null
+          // }));
 
-          const forecastPoints = forecast.map(d => ({
-            date: d.date,
-            historicalAQI: null,
-            forecastAQI: d.aqi
-          }));
+          // const forecastPoints = forecast.map(d => ({
+          //   date: d.date,
+          //   historicalAQI: null,
+          //   forecastAQI: d.aqi
+          // }));
 
-          setChartData([...historicalPoints, ...forecastPoints]);
+          // setChartData([...historicalPoints, ...forecastPoints]);
+
+          const mergedData = historical.map(d => ({
+            date: d.date,
+            aqi: d.aqi,
+            isForecast: false
+          })).concat(forecast.map(d => ({
+            date: d.date,
+            aqi: d.aqi,
+            isForecast: true
+          })));
+          
+          setChartData(mergedData);
+          
         } catch (err) {
           console.error("Error fetching AQI data:", err);
         }
@@ -635,14 +648,50 @@ const AirQualityDashboard = () => {
                 </div>
                 <div className="h-[800px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    {/* <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" interval={0} angle={-45} textAnchor="end" height={300} tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')}/>
                       <YAxis />
                       <Tooltip />
                       <Line type="monotone" dataKey="historicalAQI" stroke="#3B82F6" name="Historical AQI" />
                       <Line type="monotone" dataKey="forecastAQI" stroke="#EF4444" strokeDasharray="5 5" name="Forecast AQI" />
-                    </LineChart>
+                    </LineChart> */}
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          interval={0} 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={100} 
+                          tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')} 
+                        />
+                        <YAxis />
+                        <Tooltip />
+
+                        {/* Blue line, the entire AQI line, no gaps */}
+                        <Line 
+                          type="monotone" 
+                          dataKey="aqi"
+                          stroke="#3B82F6"
+                          strokeWidth={2}
+                          dot={true}
+                          connectNulls
+                          name="AQI"
+                        />
+
+                        {/* The forecast segment has an additional red line overlaying the forecast area */}
+                        <Line 
+                          type="monotone" 
+                          dataKey={(d) => d.isForecast ? d.aqi : null} 
+                          stroke="#EF4444" 
+                          // strokeDasharray="5 5"
+                          strokeWidth={2}
+                          dot={true}
+                          connectNulls
+                          name="Forecast AQI"
+                        />
+                      </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
