@@ -18,7 +18,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 import MapView from "./components/MapView";
 import Weather from "./components/Weather";
@@ -82,9 +82,9 @@ const AirQualityDashboard = () => {
   //           aqi: d.aqi,
   //           isForecast: true
   //         })));
-          
+
   //         setChartData(mergedData);
-          
+
   //       } catch (err) {
   //         console.error("Error fetching AQI data:", err);
   //       }
@@ -99,20 +99,26 @@ const AirQualityDashboard = () => {
         try {
           // Encode the station name to handle spaces and special characters
           const encodedStation = encodeURIComponent(selectedCityName);
-          const response = await fetch(`http://localhost:5000/data/${encodedStation}`);
+          const response = await fetch(
+            `http://localhost:5000/data/${encodedStation}`
+          );
           const data = await response.json();
           if (response.ok) {
             const historical = data.historical;
             const forecast = data.forecast;
-            const mergedData = historical.map(d => ({
-              date: d.date,
-              aqi: d.aqi,
-              isForecast: false
-            })).concat(forecast.map(d => ({
-              date: d.date,
-              aqi: d.aqi,
-              isForecast: true
-            })));
+            const mergedData = historical
+              .map((d) => ({
+                date: d.date,
+                aqi: d.aqi,
+                isForecast: false,
+              }))
+              .concat(
+                forecast.map((d) => ({
+                  date: d.date,
+                  aqi: d.aqi,
+                  isForecast: true,
+                }))
+              );
             setChartData(mergedData);
           } else {
             console.error("Failed to fetch station data");
@@ -124,12 +130,11 @@ const AirQualityDashboard = () => {
       fetchData();
     }
   }, [selectedCityName]);
-  
 
   // Determine whether it is a prediction segment
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const isForecast = payload.find(p => p.payload.isForecast); 
+      const isForecast = payload.find((p) => p.payload.isForecast);
       return (
         <div className="bg-white p-2 border rounded shadow text-sm">
           <p className="font-medium mb-1">{label}</p>
@@ -143,7 +148,6 @@ const AirQualityDashboard = () => {
     }
     return null;
   };
-
 
   const [childProfiles, setChildProfiles] = useState([
     {
@@ -211,7 +215,7 @@ const AirQualityDashboard = () => {
     if (!data) return; // Guard clause to prevent errors with null data
 
     setWeatherData(data);
-    
+
     // If AQI was provided by the weather service, update it
     if (data.aqi && data.aqi !== currentAQI) {
       setCurrentAQI(data.aqi);
@@ -268,7 +272,7 @@ const AirQualityDashboard = () => {
     setIsLoading(true);
     try {
       const { location, lat, lon, aqi } = locationData;
-      
+
       // Update the selected location
       setSelectedCityName(location);
       setMapLocation({ lat, lon });
@@ -280,9 +284,9 @@ const AirQualityDashboard = () => {
       // setSelectedStation(location);
 
       // Add to allCityData if not already there
-      setAllCityData(prevData => ({
+      setAllCityData((prevData) => ({
         ...prevData,
-        [location]: { lat, lon, aqi }
+        [location]: { lat, lon, aqi },
       }));
     } catch (error) {
       console.error("Error handling location data:", error);
@@ -310,7 +314,7 @@ const AirQualityDashboard = () => {
 
   // Function to reset map view to show all of Malaysia
   const [resetView, setResetView] = useState(false);
-  
+
   const handleResetMapView = () => {
     setMapLocation(null);
     setSelectedCityName("");
@@ -340,7 +344,7 @@ const AirQualityDashboard = () => {
         icon: <Sun className="h-5 w-5" />,
       },
     ]);
-    
+
     // Trigger map reset
     setResetView(true);
     // Reset after a short delay
@@ -352,9 +356,9 @@ const AirQualityDashboard = () => {
   // Function to update all city data with AQI values
   const updateAllCityData = (cityData) => {
     if (!cityData) return;
-    setAllCityData(prevData => ({
+    setAllCityData((prevData) => ({
       ...prevData,
-      ...cityData
+      ...cityData,
     }));
   };
 
@@ -456,18 +460,21 @@ const AirQualityDashboard = () => {
                 </div>
                 <div className="px-4 py-5 sm:p-6">
                   {/* Create a stacking context for proper z-index behavior */}
-                  <div style={{ position: 'relative', zIndex: 1000 }}>
+                  <div style={{ position: "relative", zIndex: 1000 }}>
                     <LocationDropdown
                       onLocationChange={handleLocationChange}
                       isLoading={isLoading}
                       onAllCityDataUpdate={updateAllCityData}
                     />
                   </div>
-                  
+
                   {/* Map section */}
-                  <div className="h-96 mt-4" style={{ position: 'relative', zIndex: 1 }}>
-                    <MapView 
-                      location={mapLocation} 
+                  <div
+                    className="h-96 mt-4"
+                    style={{ position: "relative", zIndex: 1 }}
+                  >
+                    <MapView
+                      location={mapLocation}
                       allCityData={allCityData}
                       selectedLocation={selectedCityName}
                       onLocationSelect={handleMapMarkerClick}
@@ -477,16 +484,15 @@ const AirQualityDashboard = () => {
                 </div>
               </div>
 
-          
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                {/* Forecast Chart left 2/3 */}
+                <div className="md:col-span-2 flex flex-col h-full">
+                  <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      7-days AQI Forecast
+                    </h3>
 
-              {/* Forecast Chart left 2/3 */}
-              <div className="md:col-span-2 flex flex-col h-full" >
-                <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">7-days AQI Forecast</h3>
-
-
-                  {/* <div className="flex items-center mb-4">
+                    {/* <div className="flex items-center mb-4">
                     <label htmlFor="station-select" className="mr-3 text-sm font-medium text-gray-700">Choose Station:</label>
                     <select
                       id="station-select"
@@ -500,44 +506,62 @@ const AirQualityDashboard = () => {
                     </select>
                   </div> */}
 
-                  <div className="h-[450px]">  {/* You can adjust the height yourself */}
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 80 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
-                          interval={0} 
-                          angle={-45} 
-                          textAnchor="end" 
-                          height={100} 
-                          tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')}
-                          label={{ value: 'Date', position: 'insideBottom', offset: 10 }} 
-                        />
-                        <YAxis label={{ value: 'AQI', angle: -90, position: 'insideLeft', offset: 10 }}/>
-                        <Tooltip content={<CustomTooltip />}/>
-                        <Line 
-                          type="monotone" 
-                          dataKey="aqi"
-                          stroke="#3B82F6"
-                          strokeWidth={2}
-                          dot={true}
-                          connectNulls
-                          name="AQI"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey={(d) => d.isForecast ? d.aqi : null} 
-                          stroke="#EF4444" 
-                          strokeWidth={2}
-                          dot={true}
-                          connectNulls
-                          name="Forecast AQI"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <div className="h-[450px]">
+                      {" "}
+                      {/* You can adjust the height yourself */}
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={chartData}
+                          margin={{ top: 10, right: 30, left: 20, bottom: 80 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="date"
+                            interval={0}
+                            angle={-45}
+                            textAnchor="end"
+                            height={100}
+                            tickFormatter={(tick) =>
+                              dayjs(tick).format("YYYY-MM-DD")
+                            }
+                            label={{
+                              value: "Date",
+                              position: "insideBottom",
+                              offset: 10,
+                            }}
+                          />
+                          <YAxis
+                            label={{
+                              value: "AQI",
+                              angle: -90,
+                              position: "insideLeft",
+                              offset: 10,
+                            }}
+                          />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Line
+                            type="monotone"
+                            dataKey="aqi"
+                            stroke="#3B82F6"
+                            strokeWidth={2}
+                            dot={true}
+                            connectNulls
+                            name="AQI"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey={(d) => (d.isForecast ? d.aqi : null)}
+                            stroke="#EF4444"
+                            strokeWidth={2}
+                            dot={true}
+                            connectNulls
+                            name="Forecast AQI"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
 
                 {/* Right Side - Air Quality Alert with Weather Factors (1/3 width) */}
                 <div className="bg-white shadow rounded-lg md:col-span-1 flex flex-col h-full">
@@ -579,7 +603,9 @@ const AirQualityDashboard = () => {
                             {riskLevel}
                           </span>
                         ) : (
-                          <span className="text-gray-500">No city selected</span>
+                          <span className="text-gray-500">
+                            No city selected
+                          </span>
                         )}
                       </h4>
                       {selectedCityName ? (
@@ -596,7 +622,8 @@ const AirQualityDashboard = () => {
                         </p>
                       ) : (
                         <p className="mt-1 text-sm text-gray-600">
-                          Select a city from the dropdown above to view detailed air quality information.
+                          Select a city from the dropdown above to view detailed
+                          air quality information.
                         </p>
                       )}
                     </div>

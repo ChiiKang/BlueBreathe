@@ -55,23 +55,99 @@ def get_db_connection():
         return None
 
 
-# example
-# conn = get_db_connection()
-# if not conn:
-#     return jsonify({"error": "Database connection failed"}), 500
+# Add these new endpoints to your app.py file
 
-# try:
-#     cursor = conn.cursor(dictionary=True)
-#     # Execute queries...
-#     # enter queries
-#     results = cursor.fetchall()
-#     return jsonify({"data": results})
-# except Exception as e:
-#     return jsonify({"error": str(e)}), 500
-# finally:
-#     if conn:
-#         cursor.close()
-#         conn.close()
+
+@app.route("/api/stations", methods=["GET"])
+def get_stations():
+    """Get all available monitoring stations from the database"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT DISTINCT station_name FROM aqi_records")
+        stations = [row["station_name"] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+
+        return jsonify({"stations": stations})
+    except Error as e:
+        if conn:
+            conn.close()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/data/<station>", methods=["GET"])
+def get_station_data(station):
+    """Get historical and forecast AQI data for a specific station"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get historical data (last 5 days)
+        current_date = datetime.now().date()
+        start_date = current_date - timedelta(days=5)
+
+        cursor.execute(
+            """
+            SELECT station_name, date, aqi 
+            FROM aqi_records 
+            WHERE station_name = %s AND date BETWEEN %s AND %s
+            ORDER BY date ASC
+            """,
+            (station, start_date, current_date),
+        )
+
+        historical_data = []
+        for row in cursor.fetchall():
+            historical_data.append(
+                {"date": row["date"].strftime("%Y-%m-%d"), "aqi": float(row["aqi"])}
+            )
+
+        # Generate forecast data if needed
+        # This is where you would normally call a prediction model
+        # For now, we'll use a simple algorithm that adds some variation to the last known AQI
+
+        forecast_data = []
+        last_aqi = historical_data[-1]["aqi"] if historical_data else 50
+
+        forecast_start = current_date + timedelta(days=1)
+        for i in range(7):  # 7-day forecast
+            forecast_date = forecast_start + timedelta(days=i)
+
+            # Simple "forecast" algorithm (random variation of ±20%)
+            import random
+
+            variation = random.uniform(0.8, 1.2)
+            forecast_aqi = round(last_aqi * variation, 1)
+
+            forecast_data.append(
+                {"date": forecast_date.strftime("%Y-%m-%d"), "aqi": forecast_aqi}
+            )
+
+            # Update last_aqi for next iteration (smoothing)
+            last_aqi = forecast_aqi
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(
+            {
+                "station": station,
+                "historical": historical_data,
+                "forecast": forecast_data,
+            }
+        )
+
+    except Error as e:
+        if conn:
+            conn.close()
+        return jsonify({"error": str(e)}), 500
 
 
 # Mapbox API Key
