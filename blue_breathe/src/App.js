@@ -23,6 +23,9 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+
+import dayjs from 'dayjs';
+
 import MapView from "./components/MapView";
 import Weather from "./components/Weather";
 import LocationSearch from "./components/LocationSearch";
@@ -39,6 +42,60 @@ const AirQualityDashboard = () => {
 
   const [weatherData, setWeatherData] = useState(null);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
+
+  //7day-forecat
+  const [stations, setStations] = useState([]);
+  const [selectedStation, setSelectedStation] = useState('');
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const response = await fetch('/stations');
+        const data = await response.json();
+        setStations(data);
+        if (data.length > 0) {
+          setSelectedStation(data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching stations:", err);
+      }
+    };
+    fetchStations();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStation) {
+      const fetchData = async () => {
+        try {
+          const response = await fetch(`/data/${selectedStation}`);
+          const data = await response.json();
+          const historical = data.historical;
+          const forecast = data.forecast;
+
+          const historicalPoints = historical.map(d => ({
+            date: d.date,
+            historicalAQI: d.aqi,
+            forecastAQI: null
+          }));
+
+          const forecastPoints = forecast.map(d => ({
+            date: d.date,
+            historicalAQI: null,
+            forecastAQI: d.aqi
+          }));
+
+          setChartData([...historicalPoints, ...forecastPoints]);
+        } catch (err) {
+          console.error("Error fetching AQI data:", err);
+        }
+      };
+      fetchData();
+    }
+  }, [selectedStation]);
+
+
+
 
   // Chart data with default empty arrays
   const [airQualityData, setAirQualityData] = useState([]);
@@ -560,6 +617,39 @@ const AirQualityDashboard = () => {
                   </div>
                 </div>
               </div>
+              
+              <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">7-days AQI Forecast</h3>
+                <div className="flex items-center mb-4">
+                  <label htmlFor="station-select" className="mr-3 text-sm font-medium text-gray-700">Choose Station:</label>
+                  <select
+                    id="station-select"
+                    className="border-gray-300 rounded-md shadow-sm text-sm"
+                    value={selectedStation}
+                    onChange={(e) => setSelectedStation(e.target.value)}
+                  >
+                    {stations.map((station) => (
+                      <option key={station} value={station}>{station}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="h-[800px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" interval={0} angle={-45} textAnchor="end" height={300} tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')}/>
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="historicalAQI" stroke="#3B82F6" name="Historical AQI" />
+                      <Line type="monotone" dataKey="forecastAQI" stroke="#EF4444" strokeDasharray="5 5" name="Forecast AQI" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+
+
+
             </>
           )}
 
@@ -705,6 +795,11 @@ const AirQualityDashboard = () => {
                   </div>
                 </div>
               </div>
+
+              
+
+
+
             </>
           )}
 

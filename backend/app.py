@@ -4,12 +4,29 @@ from flask_cors import CORS
 import requests
 import json
 import time
+import mysql.connector
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
    "https://bluebreathe-frontend.onrender.com", 
    "http://localhost:3000"
 ]}})
+
+
+# MySQL config
+DB_CONFIG = {
+    "host": "localhost",
+    "user": "root",  # username
+    "password": "123456",  # user pw
+    "database": "aqi_data"
+}
+
+# database connnected
+def get_db_connection():
+    return mysql.connector.connect(**DB_CONFIG)
+
+
 
 # Mapbox API Key
 MAPBOX_API_KEY = "pk.eyJ1IjoiY2hpaWthbmd0YW5nIiwiYSI6ImNtODh5ZzJtYzB2Z28ycXBzeWtkMzB3bTUifQ.fed8V4KeNrBiEGMxeiCtWg"
@@ -214,6 +231,53 @@ def get_location_air_quality():
         return jsonify({"error": "Invalid lat or lon"}), 400
 
     return jsonify(get_air_quality(lat, lon))
+
+
+#get station data from database
+@app.route("/stations")
+def get_stations():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT station_name FROM aqi_records")
+    stations = [row[0] for row in cursor.fetchall()]
+    cursor.close()
+    conn.close()
+    return jsonify(stations)
+
+#get station forecast data from database
+@app.route("/data/<station>")
+def get_data(station):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    today = pd.Timestamp.today().normalize()
+    past_7_days = today - pd.Timedelta(days=7)
+    forecast_start = today + pd.Timedelta(days=1)
+
+    cursor.execute("""
+        SELECT date, aqi FROM aqi_records
+        WHERE station_name = %s AND date >= %s AND date < %s
+        ORDER BY date
+    """, (station, past_7_days, forecast_start))
+    historical = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT date, aqi FROM aqi_records
+        WHERE station_name = %s AND date >= %s
+        ORDER BY date LIMIT 7
+    """, (station, forecast_start))
+    forecast = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "historical": historical,
+        "forecast": forecast
+    })
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
