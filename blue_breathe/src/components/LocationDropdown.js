@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, ChevronDown } from "lucide-react";
 
-const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) => {
+const LocationDropdown = ({
+  onLocationChange,
+  isLoading,
+  onAllCityDataUpdate,
+}) => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [cityCoordinates, setCityCoordinates] = useState({});
   const [aqiData, setAqiData] = useState({});
@@ -29,7 +33,7 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
     "Perai, Pulau Pinang",
     "Kemaman, Terengganu",
     "Tawau, Sabah",
-    "Samalaju, Sarawak"
+    "Samalaju, Sarawak",
   ];
 
   // Static AQI values for consistent display
@@ -55,9 +59,9 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
       "Perai, Pulau Pinang": 125,
       "Kemaman, Terengganu": 47,
       "Tawau, Sabah": 35,
-      "Samalaju, Sarawak": 29
+      "Samalaju, Sarawak": 29,
     };
-    
+
     // Return the static value or a default value if not found
     return staticAqiValues[cityName] || 50;
   };
@@ -79,26 +83,35 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
             "Petaling Jaya, Selangor": { lat: 3.1073, lon: 101.6067 },
             "Shah Alam, Selangor": { lat: 3.0738, lon: 101.5183 },
             "Pelabuhan Kelang, Selangor": { lat: 3.0017, lon: 101.4043 },
-            "Batu Muda, Kuala Lumpur, Wilayah Persekutuan": { lat: 3.2089, lon: 101.6866 },
-            "Cheras, Kuala Lumpur, Wilayah Persekutuan": { lat: 3.1073, lon: 101.7532 },
+            "Batu Muda, Kuala Lumpur, Wilayah Persekutuan": {
+              lat: 3.2089,
+              lon: 101.6866,
+            },
+            "Cheras, Kuala Lumpur, Wilayah Persekutuan": {
+              lat: 3.1073,
+              lon: 101.7532,
+            },
             "Putrajaya, W.P. Putrajaya": { lat: 2.9264, lon: 101.6964 },
-            "Jerantut, Pahang": { lat: 3.9360, lon: 102.3630 },
+            "Jerantut, Pahang": { lat: 3.936, lon: 102.363 },
             "Port Dickson, Negeri Sembilan": { lat: 2.5289, lon: 101.8094 },
             "Kota Bharu, Kelantan": { lat: 6.1256, lon: 102.2389 },
             "Kg. Air Putih, Taiping, Perak": { lat: 4.8576, lon: 100.7199 },
             "Bakar Arang, Sg. Petani, Kedah": { lat: 5.6478, lon: 100.4918 },
             "Kulim Hi-Tech, Kedah": { lat: 5.4134, lon: 100.5592 },
-            "Batu Pahat, Johor": { lat: 1.8550, lon: 102.9328 },
+            "Batu Pahat, Johor": { lat: 1.855, lon: 102.9328 },
             "Tangkak, Johor": { lat: 2.2726, lon: 102.5453 },
-            "Seberang Jaya 2, Perai, Pulau Pinang": { lat: 5.3896, lon: 100.3984 },
+            "Seberang Jaya 2, Perai, Pulau Pinang": {
+              lat: 5.3896,
+              lon: 100.3984,
+            },
             "Perai, Pulau Pinang": { lat: 5.3839, lon: 100.3915 },
             "Kemaman, Terengganu": { lat: 4.2323, lon: 103.4184 },
             "Tawau, Sabah": { lat: 4.2448, lon: 117.8914 },
-            "Samalaju, Sarawak": { lat: 3.9833, lon: 113.3000 }
+            "Samalaju, Sarawak": { lat: 3.9833, lon: 113.3 },
           };
 
           let lat, lon;
-          
+
           // Use hard-coded coordinates if available
           if (cityCoords[city]) {
             lat = cityCoords[city].lat;
@@ -106,10 +119,12 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
           } else {
             // Fallback to Nominatim API if we don't have hard-coded coordinates
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}, Malaysia`
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+                city
+              )}, Malaysia`
             );
             const data = await response.json();
-            
+
             if (data && data.length > 0) {
               lat = parseFloat(data[0].lat);
               lon = parseFloat(data[0].lon);
@@ -119,13 +134,13 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
               lon = 101.6869 + (Math.random() - 0.5) * 0.5;
             }
           }
-          
+
           coordinates[city] = { lat, lon };
-          
+
           // Use static AQI values instead of random generation
           const aqi = getStaticAqiValue(city);
           aqiValues[city] = aqi;
-          
+
           // Store all city data
           allCityData[city] = { lat, lon, aqi };
         } catch (error) {
@@ -134,7 +149,7 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
           const lat = 3.139 + (Math.random() - 0.5) * 0.5;
           const lon = 101.6869 + (Math.random() - 0.5) * 0.5;
           const aqi = getStaticAqiValue(city);
-          
+
           coordinates[city] = { lat, lon };
           aqiValues[city] = aqi;
           allCityData[city] = { lat, lon, aqi };
@@ -143,12 +158,12 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
 
       setCityCoordinates(coordinates);
       setAqiData(aqiValues);
-      
+
       // Update the parent component with all city data
       if (onAllCityDataUpdate) {
         onAllCityDataUpdate(allCityData);
       }
-      
+
       // Don't set a default city - just send all the data to parent
       if (isInitialLoad) {
         setIsInitialLoad(false);
@@ -171,7 +186,7 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
       onLocationChange({
         location,
         ...cityCoordinates[location],
-        aqi: aqiData[location]
+        aqi: aqiData[location],
       });
     }
   };
@@ -180,7 +195,10 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
     <div className="mb-4">
       <div className="relative" style={{ zIndex: 9999 }}>
         <div className="flex flex-col">
-          <label htmlFor="location" className="text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="location"
+            className="text-sm font-medium text-gray-700 mb-1"
+          >
             Select Location
           </label>
           <div className="relative">
@@ -219,9 +237,7 @@ const LocationDropdown = ({ onLocationChange, isLoading, onAllCityDataUpdate }) 
                     role="option"
                     aria-selected={selectedLocation === city}
                   >
-                    <span className="font-normal block truncate">
-                      {city}
-                    </span>
+                    <span className="font-normal block truncate">{city}</span>
                     {selectedLocation === city && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
                         <MapPin className="h-5 w-5" />

@@ -41,7 +41,7 @@ const createAqiMarkerIcon = (aqi, isSelected) => {
     html: `
       <div style="position: relative; z-index: ${zIndex}; cursor: pointer;">
         <div style="background-color: ${markerColor}; 
-                    color: ${aqi > 150 ? 'white' : 'black'}; 
+                    color: ${aqi > 150 ? "white" : "black"}; 
                     border-radius: 50%; 
                     width: ${size}px; 
                     height: ${size}px; 
@@ -53,9 +53,9 @@ const createAqiMarkerIcon = (aqi, isSelected) => {
                     box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${aqi}</div>
       </div>`,
     iconSize: [size, size],
-    iconAnchor: [size/2, size/2],
-    popupAnchor: [0, -size/2],
-    interactive: true // Make sure the icon is interactive
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+    interactive: true, // Make sure the icon is interactive
   });
 };
 
@@ -79,10 +79,10 @@ function ChangeView({ center, zoom, resetView }) {
           [1.0, 99.5], // Southwest corner
           [7.5, 119.5] // Northeast corner
         );
-        
-        map.fitBounds(malaysiaBounds, { 
+
+        map.fitBounds(malaysiaBounds, {
           padding: [20, 20],
-          animate: false 
+          animate: false,
         });
         return;
       } catch (error) {
@@ -97,7 +97,7 @@ function ChangeView({ center, zoom, resetView }) {
         console.log("Setting view to specific location:", center);
         map.setView([center.lat, center.lon], zoom || 12, {
           animate: true,
-          duration: 1 // Shorter animation to reduce chances of errors
+          duration: 1, // Shorter animation to reduce chances of errors
         });
         isInitialViewRef.current = false;
       } else if (isInitialViewRef.current) {
@@ -107,17 +107,17 @@ function ChangeView({ center, zoom, resetView }) {
           [1.0, 99.5], // Southwest corner
           [7.5, 119.5] // Northeast corner
         );
-        
+
         // Use fitBounds with a slight delay to ensure the map is ready
         setTimeout(() => {
           if (map && map._loaded) {
-            map.fitBounds(malaysiaBounds, { 
+            map.fitBounds(malaysiaBounds, {
               padding: [20, 20],
-              animate: false // Disable animation for initial view
+              animate: false, // Disable animation for initial view
             });
           }
         }, 100);
-        
+
         isInitialViewRef.current = false;
       }
     } catch (error) {
@@ -154,7 +154,13 @@ const getAqiClass = (aqi) => {
   return "text-purple-900";
 };
 
-const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, resetView }) => {
+const MapView = ({
+  location,
+  allCityData,
+  selectedLocation,
+  onLocationSelect,
+  resetView,
+}) => {
   // Need a state to track map rerender
   const [mapKey, setMapKey] = useState(Date.now());
   const [hasError, setHasError] = useState(false);
@@ -202,10 +208,13 @@ const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, re
       <div className="text-center">
         <h3 className="font-bold">{name}</h3>
         <p>
-          Air Quality: <span className={aqiClass + " font-medium"}>{aqiValue} AQI</span>
+          Air Quality:{" "}
+          <span className={aqiClass + " font-medium"}>{aqiValue} AQI</span>
         </p>
-        <p>Status: <span className={aqiClass + " font-medium"}>{aqiText}</span></p>
-        <button 
+        <p>
+          Status: <span className={aqiClass + " font-medium"}>{aqiText}</span>
+        </p>
+        <button
           className={`mt-2 px-3 py-1 text-white rounded ${buttonClass}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -226,13 +235,13 @@ const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, re
 
   // Set a safer default center of Malaysia
   const defaultCenter = [4.2105, 109.4053];
-  
+
   return (
     <div className="relative h-full">
-      <div 
-        ref={mapContainerRef} 
+      <div
+        ref={mapContainerRef}
         className="h-full w-full"
-        style={{ position: 'relative' }}
+        style={{ position: "relative" }}
       >
         <MapContainer
           key={mapKey}
@@ -242,45 +251,47 @@ const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, re
           whenReady={() => console.log("Map is ready")}
           whenCreated={(map) => {
             // Prevent and log any errors
-            map.on('error', handleMapError);
+            map.on("error", handleMapError);
           }}
         >
-          <TileLayer 
+          <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          
+
           {/* Change the map view based on selected location */}
-          <ChangeView 
-            center={location} 
-            zoom={location ? 12 : 6} 
+          <ChangeView
+            center={location}
+            zoom={location ? 12 : 6}
             resetView={resetView}
           />
 
           {/* Render markers for all cities in the data */}
-          {allCityData && Object.entries(allCityData).map(([cityName, cityData]) => {
-            // Create a wrapper function to handle click for this specific city
-            const cityClickHandler = () => {
-              console.log("City marker clicked:", cityName);
-              handleMarkerClick(cityName, cityData);
-            };
-            
-            return (
-              <Marker 
-                key={cityName}
-                position={[cityData.lat, cityData.lon]}
-                icon={createAqiMarkerIcon(cityData.aqi, cityName === selectedLocation)}
-                zIndexOffset={cityName === selectedLocation ? 1000 : 0}
-                eventHandlers={{
-                  click: cityClickHandler
-                }}
-              >
-                <Popup>
-                  {getPopupContent(cityName, cityData.aqi)}
-                </Popup>
-              </Marker>
-            );
-          })}
+          {allCityData &&
+            Object.entries(allCityData).map(([cityName, cityData]) => {
+              // Create a wrapper function to handle click for this specific city
+              const cityClickHandler = () => {
+                console.log("City marker clicked:", cityName);
+                handleMarkerClick(cityName, cityData);
+              };
+
+              return (
+                <Marker
+                  key={cityName}
+                  position={[cityData.lat, cityData.lon]}
+                  icon={createAqiMarkerIcon(
+                    cityData.aqi,
+                    cityName === selectedLocation
+                  )}
+                  zIndexOffset={cityName === selectedLocation ? 1000 : 0}
+                  eventHandlers={{
+                    click: cityClickHandler,
+                  }}
+                >
+                  <Popup>{getPopupContent(cityName, cityData.aqi)}</Popup>
+                </Marker>
+              );
+            })}
         </MapContainer>
       </div>
 
@@ -297,7 +308,9 @@ const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, re
         </div>
         <div className="flex items-center mb-1">
           <div className="w-4 h-4 rounded-full bg-orange-500 mr-1"></div>
-          <span className="text-orange-500 font-medium">101-150: Unhealthy for Sensitive Groups</span>
+          <span className="text-orange-500 font-medium">
+            101-150: Unhealthy for Sensitive Groups
+          </span>
         </div>
         <div className="flex items-center mb-1">
           <div className="w-4 h-4 rounded-full bg-red-600 mr-1"></div>
@@ -305,7 +318,9 @@ const MapView = ({ location, allCityData, selectedLocation, onLocationSelect, re
         </div>
         <div className="flex items-center mb-1">
           <div className="w-4 h-4 rounded-full bg-purple-600 mr-1"></div>
-          <span className="text-purple-600 font-medium">201-300: Very Unhealthy</span>
+          <span className="text-purple-600 font-medium">
+            201-300: Very Unhealthy
+          </span>
         </div>
         <div className="flex items-center">
           <div className="w-4 h-4 rounded-full bg-purple-900 mr-1"></div>
