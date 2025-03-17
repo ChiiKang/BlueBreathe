@@ -23,6 +23,9 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+
+import dayjs from 'dayjs';
+
 import MapView from "./components/MapView";
 import Weather from "./components/Weather";
 import LocationSearch from "./components/LocationSearch";
@@ -43,6 +46,78 @@ const AirQualityDashboard = () => {
   // Chart data with default empty arrays
   const [airQualityData, setAirQualityData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
+
+  //7day-forecat
+  const [stations, setStations] = useState([]);
+  const [selectedStation, setSelectedStation] = useState('');
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const response = await fetch('/stations');
+        const data = await response.json();
+        setStations(data);
+        if (data.length > 0) {
+          setSelectedStation(data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching stations:", err);
+      }
+    };
+    fetchStations();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStation) {
+      const fetchData = async () => {
+        try {
+          const response = await fetch(`/data/${selectedStation}`);
+          const data = await response.json();
+          const historical = data.historical;
+          const forecast = data.forecast;
+
+          const mergedData = historical.map(d => ({
+            date: d.date,
+            aqi: d.aqi,
+            isForecast: false
+          })).concat(forecast.map(d => ({
+            date: d.date,
+            aqi: d.aqi,
+            isForecast: true
+          })));
+          
+          setChartData(mergedData);
+          
+        } catch (err) {
+          console.error("Error fetching AQI data:", err);
+        }
+      };
+      fetchData();
+    }
+  }, [selectedStation]);
+
+  // Determine whether it is a prediction segment
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const isForecast = payload.find(p => p.payload.isForecast); 
+      return (
+        <div className="bg-white p-2 border rounded shadow text-sm">
+          <p className="font-medium mb-1">{label}</p>
+          {isForecast ? (
+            <p className="text-red-500">Forecast AQI : {payload[0].value}</p>
+          ) : (
+            <p className="text-blue-500">Historical AQI : {payload[0].value}</p>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+
+
+
 
   const [childProfiles, setChildProfiles] = useState([
     {
@@ -381,82 +456,67 @@ const AirQualityDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left Side - Today's Trend (2/3 width) */}
-                <div className="bg-white overflow-hidden shadow rounded-lg md:col-span-2">
-                  <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Today's Air Quality Trend
-                    </h3>
+          
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+
+              {/* Forecast Chart left 2/3 */}
+              <div className="md:col-span-2 flex flex-col h-full" >
+                <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">7-days AQI Forecast</h3>
+                  <div className="flex items-center mb-4">
+                    <label htmlFor="station-select" className="mr-3 text-sm font-medium text-gray-700">Choose Station:</label>
+                    <select
+                      id="station-select"
+                      className="border-gray-300 rounded-md shadow-sm text-sm"
+                      value={selectedStation}
+                      onChange={(e) => setSelectedStation(e.target.value)}
+                    >
+                      {stations.map((station) => (
+                        <option key={station} value={station}>{station}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="h-64">
-                      {airQualityData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={airQualityData}
-                            margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                          >
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              vertical={false}
-                            />
-                            <XAxis dataKey="time" />
-                            <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} />
-                            <Tooltip
-                              formatter={(value, name) => {
-                                if (name === "aqi") {
-                                  const labels = [
-                                    "",
-                                    "Good",
-                                    "Fair",
-                                    "Moderate",
-                                    "Poor",
-                                    "Very Poor",
-                                  ];
-                                  const aqiLabel = labels[value] || value;
-                                  const dataPoint = airQualityData.find(
-                                    (d) => d.aqi === value
-                                  );
-                                  const pm25Value = dataPoint?.pm25
-                                    ? `PM2.5: ${dataPoint.pm25.toFixed(
-                                        1
-                                      )} μg/m³`
-                                    : "";
-                                  return [
-                                    `${aqiLabel} ${
-                                      pm25Value ? `(${pm25Value})` : ""
-                                    }`,
-                                    "AQI",
-                                  ];
-                                }
-                                return [value, name];
-                              }}
-                            />
-                            <Line
-                              type="monotone"
-                              name="AQI"
-                              dataKey="aqi"
-                              stroke="#3B82F6"
-                              strokeWidth={2}
-                              dot={{ r: 4 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <div className="text-gray-400">
-                            Loading chart data...
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="h-[500px]">  {/* You can adjust the height yourself */}
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          interval={0} 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={100} 
+                          tickFormatter={(tick) => dayjs(tick).format('YYYY-MM-DD')} 
+                        />
+                        <YAxis />
+                        <Tooltip content={<CustomTooltip />}/>
+                        <Line 
+                          type="monotone" 
+                          dataKey="aqi"
+                          stroke="#3B82F6"
+                          strokeWidth={2}
+                          dot={true}
+                          connectNulls
+                          name="AQI"
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey={(d) => d.isForecast ? d.aqi : null} 
+                          stroke="#EF4444" 
+                          strokeWidth={2}
+                          dot={true}
+                          connectNulls
+                          name="Forecast AQI"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
+              </div>
 
                 {/* Right Side - Air Quality Alert with Weather Factors (1/3 width) */}
-                <div className="bg-white shadow rounded-lg md:col-span-1">
-                  <div className="px-4 py-5 sm:px-6">
+                <div className="bg-white shadow rounded-lg md:col-span-1 flex flex-col h-full">
+                  <div className="px-4 py-5 sm:px-6 flex flex-col h-full">
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-md font-medium text-gray-900">
