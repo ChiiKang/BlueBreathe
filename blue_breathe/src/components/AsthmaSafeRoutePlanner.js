@@ -109,7 +109,7 @@ const AsthmaSafeRoutePlanner = () => {
     try {
       // Call the backend API
       const response = await fetch(
-        `${API_URL}/api/routes?origin=${encodeURIComponent(
+        `https://bluebreathe-11.onrender.com/api/routes?origin=${encodeURIComponent(
           origin
         )}&destination=${encodeURIComponent(destination)}`
       );
