@@ -25,6 +25,7 @@ import Weather from "./components/Weather";
 import LocationDropdown from "./components/LocationDropdown";
 import AsthmaSafeRoutePlanner from "./components/AsthmaSafeRoutePlanner";
 import EducationalInsights from "./components/EducationalInsights";
+import API_BASE_URL from "./config";
 
 const AirQualityDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -99,8 +100,9 @@ const AirQualityDashboard = () => {
         try {
           // Encode the station name to handle spaces and special characters
           const encodedStation = encodeURIComponent(selectedCityName);
+
           const response = await fetch(
-            `http://localhost:5000/data/${encodedStation}`
+            `${API_BASE_URL}/data/${encodedStation}`
           );
           const data = await response.json();
           if (response.ok) {
