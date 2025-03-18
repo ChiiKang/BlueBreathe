@@ -25,6 +25,7 @@ import Weather from "./components/Weather";
 import LocationDropdown from "./components/LocationDropdown";
 import AsthmaSafeRoutePlanner from "./components/AsthmaSafeRoutePlanner";
 import EducationalInsights from "./components/EducationalInsights";
+import API_BASE_URL from "./config";
 
 const AirQualityDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -99,8 +100,9 @@ const AirQualityDashboard = () => {
         try {
           // Encode the station name to handle spaces and special characters
           const encodedStation = encodeURIComponent(selectedCityName);
+
           const response = await fetch(
-            `http://localhost:5000/data/${encodedStation}`
+            `${API_BASE_URL}/data/${encodedStation}`
           );
           const data = await response.json();
           if (response.ok) {
@@ -403,7 +405,7 @@ const AirQualityDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
             <Activity className="h-6 w-6 mr-2 text-blue-500" />
-            Blue Breath
+            Blue Breathe
           </h1>
         </div>
       </header>
@@ -488,9 +490,12 @@ const AirQualityDashboard = () => {
                 {/* Forecast Chart left 2/3 */}
                 <div className="md:col-span-2 flex flex-col h-full">
                   <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">
                       7-days AQI Forecast
                     </h3>
+                    <p className="mt-1 max-w-2xl text-sm text-gray-500 mb-4">
+                      View historical and predicted air quality trends
+                    </p>
 
                     {/* <div className="flex items-center mb-4">
                     <label htmlFor="station-select" className="mr-3 text-sm font-medium text-gray-700">Choose Station:</label>
@@ -559,6 +564,17 @@ const AirQualityDashboard = () => {
                           />
                         </LineChart>
                       </ResponsiveContainer>
+                    </div>
+                    {/* Legend below the graph */}
+                    <div className="flex items-center justify-center mt-4 text-sm">
+                      <div className="flex items-center mr-6">
+                        <div className="w-4 h-4 bg-blue-500 rounded-sm mr-2"></div>
+                        <span>Historical AQI Data</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-red-500 rounded-sm mr-2"></div>
+                        <span>Forecast AQI Data</span>
+                      </div>
                     </div>
                   </div>
                 </div>
