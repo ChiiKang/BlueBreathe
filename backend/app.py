@@ -18,14 +18,10 @@ from urllib.parse import unquote
 app = Flask(__name__)
 CORS(
     app,
-    resources={
-        r"/*": {
-            "origins": [
-                "https://bluebreathe-frontend.onrender.com",
-                "http://localhost:3000",
-            ]
-        }
-    },
+    resources={r"/*": {"origins": "*"}},  # Change "*" to your frontend domain for security
+    supports_credentials=True,
+    methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Load environment variables
@@ -57,6 +53,12 @@ def get_db_connection():
         print(f"Error while connecting to MySQL: {e}")
         return None
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 
 # example
 # conn = get_db_connection()
@@ -402,4 +404,4 @@ def home():
 if __name__ == "__main__":
     app.run()
 
-    
+
