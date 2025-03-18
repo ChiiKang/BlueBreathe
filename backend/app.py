@@ -393,5 +393,9 @@ if not debug_mode:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+@app.route("/")
+def home():
+    return jsonify({"message": "Welcome to BlueBreathe API", "status": "running"})
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+    app.run()
