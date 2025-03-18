@@ -489,7 +489,7 @@ const AirQualityDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 {/* Forecast Chart left 2/3 */}
                 <div className="md:col-span-2 flex flex-col h-full">
-                  <div className="bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
+                  <div className="mb-6 bg-white overflow-hidden shadow rounded-lg p-6 flex flex-col h-full">
                     <h3 className="text-lg font-medium text-gray-900">
                       7-days AQI Forecast
                     </h3>
@@ -581,7 +581,7 @@ const AirQualityDashboard = () => {
 
                 {/* Right Side - Air Quality Alert with Weather Factors (1/3 width) */}
                 <div className="bg-white shadow rounded-lg md:col-span-1 flex flex-col h-full">
-                  <div className="px-4 py-5 sm:px-6 flex flex-col h-full justify-between">
+                  <div className="px-4 py-5 sm:px-6 flex flex-col h-full">
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="text-md font-medium text-gray-900">
