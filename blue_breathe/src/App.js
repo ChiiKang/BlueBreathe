@@ -102,7 +102,7 @@ const AirQualityDashboard = () => {
           const encodedStation = encodeURIComponent(selectedCityName);
 
           const response = await fetch(
-            `${API_BASE_URL}/data/${encodedStation}`
+            `https://bluebreathe-11.onrender.com/data/${encodedStation}`
           );
           const data = await response.json();
           if (response.ok) {
